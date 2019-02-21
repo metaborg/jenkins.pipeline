@@ -29,6 +29,14 @@ dependencies {
   implementation("org.codehaus.groovy:groovy-all:2.5.5")
 }
 
+tasks {
+  wrapper {
+    gradleVersion = "5.2.1"
+    distributionType = Wrapper.DistributionType.ALL
+    setJarFile(".gradlew/wrapper/gradle-wrapper.jar")
+  }
+}
+
 repositories {
   jcenter()
 }

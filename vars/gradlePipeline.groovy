@@ -1,8 +1,15 @@
 def call(Map args) {
+  boolean useWrapper
+  boolean gradleRefreshDependencies
   boolean publish
   boolean publishTaggedOnly
+  String publishCredentialsId
+  String publishUsernameProperty
+  String publishPasswordProperty
+
   String upstreamProjects
-  boolean gradleRefreshDependencies
+  
+  String gradleCommand
 
   pipeline {
     agent any
@@ -18,6 +25,22 @@ def call(Map args) {
             def propsFile = 'jenkins.properties'
             def hasPropsFile = new File("$WORKSPACE/$propsFile").exists()
             def props = hasPropsFile ? readProperties(file: propsFile) : new HashMap()
+
+            if(props['useWrapper'] != null) {
+              useWrapper = props['useWrapper'] == 'true'
+            } else if(args?.useWrapper != null) {
+              useWrapper = args.useWrapper
+            } else {
+              useWrapper = new File("$WORKSPACE/gradlew").exists()
+            }
+
+            if(props['gradleRefreshDependencies'] != null) {
+              gradleRefreshDependencies = props['gradleRefreshDependencies'] == 'true'
+            } else if(args?.gradleRefreshDependencies != null) {
+              gradleRefreshDependencies = args.gradleRefreshDependencies
+            } else {
+              gradleRefreshDependencies = upstreamProjects != ''
+            }
 
             if(props['publish'] != null) {
               publish = props['publish'] == 'true'
@@ -35,6 +58,31 @@ def call(Map args) {
               publishTaggedOnly = BRANCH_NAME == "master"
             }
 
+            if(props['publishCredentialsId'] != null) {
+              publishCredentialsId = props['publishCredentialsId'] == 'true'
+            } else if(args?.publishCredentialsId != null) {
+              publishCredentialsId = args.publishCredentialsId
+            } else {
+              publishCredentialsId = "54f4266c-9654-4a93-8ba1-cab34848d8f0"
+            }
+
+            if(props['publishUsernameProperty'] != null) {
+              publishUsernameProperty = props['publishUsernameProperty'] == 'true'
+            } else if(args?.publishUsernameProperty != null) {
+              publishUsernameProperty = args.publishUsernameProperty
+            } else {
+              publishUsernameProperty = "publish.repository.metaborg.artifacts.username"
+            }
+
+            if(props['publishPasswordProperty'] != null) {
+              publishPasswordProperty = props['publishPasswordProperty'] == 'true'
+            } else if(args?.publishPasswordProperty != null) {
+              publishPasswordProperty = args.publishPasswordProperty
+            } else {
+              publishPasswordProperty = "publish.repository.metaborg.artifacts.password"
+            }
+            
+            
             if(props['upstreamProjects'] != null) {
               upstreamProjects = props['upstreamProjects']
             } else if(args?.upstreamProjects != null && args.upstreamProjects instanceof List<String> && args.upstreamProjects.length() > 0) {
@@ -43,12 +91,11 @@ def call(Map args) {
               upstreamProjects = ''
             }
 
-            if(props['gradleRefreshDependencies'] != null) {
-              gradleRefreshDependencies = props['gradleRefreshDependencies'] == 'true'
-            } else if(args?.gradleRefreshDependencies != null) {
-              gradleRefreshDependencies = args.gradleRefreshDependencies
+            
+            if(useWrapper) {
+              gradleCommand = "gradle"
             } else {
-              gradleRefreshDependencies = upstreamProjects != ''
+              gradleCommand = "gradlew"
             }
           }
         }
@@ -57,13 +104,13 @@ def call(Map args) {
       stage('Refresh dependencies') {
         when { expression { return gradleRefreshDependencies } }
         steps {
-          sh 'gradle --refresh-dependencies'
+          sh "$gradleCommand --refresh-dependencies"
         }
       }
 
       stage('Build') {
         steps {
-          sh 'gradle build'
+          sh "$gradleCommand build"
         }
       }
 
@@ -76,8 +123,8 @@ def call(Map args) {
           }
         }
         steps {
-          withCredentials([usernamePassword(credentialsId: 'artifactory', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
-            sh 'gradle publish -Ppublish.repository.Artifactory.username=$USERNAME -Ppublish.repository.Artifactory.password=$PASSWORD'
+          withCredentials([usernamePassword(credentialsId: publishCredentialsId, usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
+            sh "$gradleCommand publish -P$publishUsernameProperty=\$USERNAME -P$publishPasswordProperty=\$PASSWORD"
           }
         }
       }
