@@ -26,17 +26,11 @@ def call(Map args) {
             def hasPropsFile = fileExists(propsFile)
             def props = hasPropsFile ? readProperties(file: propsFile) : new HashMap()
 
-            println(props)
-
             if(props['useWrapper'] != null) {
-              println(props['useWrapper'])
               useWrapper = props['useWrapper'] == 'true'
             } else if(args?.useWrapper != null) {
-              println(args.useWrapper)
               useWrapper = args.useWrapper
             } else {
-              println("$WORKSPACE/gradlew")
-              println(fileExists('gradlew').exists())
               useWrapper = fileExists('gradlew')
             }
 
