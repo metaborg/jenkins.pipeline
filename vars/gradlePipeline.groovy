@@ -16,6 +16,7 @@ def call(Map args) {
 
     environment {
       JENKINS_NODE_COOKIE = 'dontKillMe' // Necessary for the Gradle daemon to be kept alive.
+      LC_ALL = 'C' // Fix assertion in locale stuff (https://stackoverflow.com/a/49796618/499240).
     }
 
     stages {
