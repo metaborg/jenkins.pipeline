@@ -23,7 +23,7 @@ def call(Map args) {
         steps {
           script {
             def propsFile = 'jenkins.properties'
-            def hasPropsFile = new File("$WORKSPACE/$propsFile").exists()
+            def hasPropsFile = fileExists(propsFile)
             def props = hasPropsFile ? readProperties(file: propsFile) : new HashMap()
 
             println(props)
@@ -36,8 +36,8 @@ def call(Map args) {
               useWrapper = args.useWrapper
             } else {
               println("$WORKSPACE/gradlew")
-              println(new File("$WORKSPACE/gradlew").exists())
-              useWrapper = new File("$WORKSPACE/gradlew").exists()
+              println(fileExists('gradlew').exists())
+              useWrapper = fileExists('gradlew')
             }
 
             if(props['gradleRefreshDependencies'] != null) {
