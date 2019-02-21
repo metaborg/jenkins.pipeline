@@ -93,9 +93,9 @@ def call(Map args) {
 
             
             if(useWrapper) {
-              gradleCommand = "gradle"
+              gradleCommand = "./gradlew"
             } else {
-              gradleCommand = "gradlew"
+              gradleCommand = "gradle"
             }
           }
         }
