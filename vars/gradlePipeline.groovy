@@ -1,4 +1,6 @@
 def call(Map args) {
+  String upstreamProjects
+
   boolean useWrapper
   boolean gradleRefreshDependencies
   boolean publish
@@ -7,8 +9,6 @@ def call(Map args) {
   String publishUsernameProperty
   String publishPasswordProperty
 
-  String upstreamProjects
-  
   String gradleCommand
 
   pipeline {
@@ -25,6 +25,16 @@ def call(Map args) {
             def propsFile = 'jenkins.properties'
             def hasPropsFile = fileExists(propsFile)
             def props = hasPropsFile ? readProperties(file: propsFile) : new HashMap()
+
+
+            if(props['upstreamProjects'] != null) {
+              upstreamProjects = props['upstreamProjects']
+            } else if(args?.upstreamProjects != null && args.upstreamProjects instanceof List<String> && args.upstreamProjects.length() > 0) {
+              upstreamProjects = args.upstreamProjects.join(',')
+            } else {
+              upstreamProjects = ''
+            }
+
 
             if(props['useWrapper'] != null) {
               useWrapper = props['useWrapper'] == 'true'
@@ -81,17 +91,8 @@ def call(Map args) {
             } else {
               publishPasswordProperty = "publish.repository.metaborg.artifacts.password"
             }
-            
-            
-            if(props['upstreamProjects'] != null) {
-              upstreamProjects = props['upstreamProjects']
-            } else if(args?.upstreamProjects != null && args.upstreamProjects instanceof List<String> && args.upstreamProjects.length() > 0) {
-              upstreamProjects = args.upstreamProjects.join(',')
-            } else {
-              upstreamProjects = ''
-            }
 
-            
+
             if(useWrapper) {
               gradleCommand = "./gradlew"
             } else {

@@ -38,5 +38,6 @@ tasks {
 }
 
 repositories {
-  jcenter()
+  maven(url = "https://artifacts.metaborg.org/content/repositories/central/")
+  jcenter() // Backup
 }
