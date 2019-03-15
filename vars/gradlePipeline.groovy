@@ -1,6 +1,6 @@
 def call(Map args) {
   String  upstreamProjects
-  boolean deleteWorkspaceAfterbuild
+  boolean deleteWorkspaceAfterBuild
 
   boolean gradleWrapper
   String  gradleJvmArgs
@@ -42,12 +42,12 @@ def call(Map args) {
               upstreamProjects = ''
             }
 
-            if(props['deleteWorkspaceAfterbuild'] != null) {
-              deleteWorkspaceAfterbuild = props['deleteWorkspaceAfterbuild'] == 'true'
-            } else if(args?.deleteWorkspaceAfterbuild != null) {
-              deleteWorkspaceAfterbuild = args.deleteWorkspaceAfterbuild
+            if(props['deleteWorkspaceAfterBuild'] != null) {
+              deleteWorkspaceAfterBuild = props['deleteWorkspaceAfterBuild'] == 'true'
+            } else if(args?.deleteWorkspaceAfterBuild != null) {
+              deleteWorkspaceAfterBuild = args.deleteWorkspaceAfterBuild
             } else {
-              deleteWorkspaceAfterbuild = false
+              deleteWorkspaceAfterBuild = false
             }
 
 
@@ -174,7 +174,7 @@ def call(Map args) {
       }
 
       stage('Delete workspace') {
-        when { expression { return deleteWorkspaceAfterbuild } }
+        when { expression { return deleteWorkspaceAfterBuild } }
         steps {
           cleanWs()
         }
