@@ -172,11 +172,14 @@ def call(Map args) {
           }
         }
       }
+    }
 
-      stage('Delete workspace') {
-        when { expression { return deleteWorkspaceAfterBuild } }
-        steps {
-          cleanWs()
+    post {
+      cleanup {
+        script {
+          if(deleteWorkspaceAfterBuild == true) {
+            cleanWs()
+          }
         }
       }
     }
