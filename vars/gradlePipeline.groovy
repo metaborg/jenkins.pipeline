@@ -1,5 +1,6 @@
 def call(Map args) {
-  String upstreamProjects
+  String  upstreamProjects
+  boolean deleteWorkspaceAfterbuild
 
   boolean gradleWrapper
   String  gradleJvmArgs
@@ -41,6 +42,14 @@ def call(Map args) {
               upstreamProjects = ''
             }
 
+            if(props['deleteWorkspaceAfterbuild'] != null) {
+              deleteWorkspaceAfterbuild = props['deleteWorkspaceAfterbuild'] == 'true'
+            } else if(args?.deleteWorkspaceAfterbuild != null) {
+              deleteWorkspaceAfterbuild = args.deleteWorkspaceAfterbuild
+            } else {
+              deleteWorkspaceAfterbuild = false
+            }
+
 
             if(props['gradleWrapper'] != null) {
               gradleWrapper = props['gradleWrapper'] == 'true'
@@ -55,7 +64,7 @@ def call(Map args) {
             } else if(args?.gradleJvmArgs != null) {
               gradleJvmArgs = args.gradleJvmArgs
             } else {
-              gradleJvmArgs = "-Xmx2G -Xss16M"
+              gradleJvmArgs = '-Xmx2G -Xss16M'
             }
 
             if(props['gradleBuildCache'] != null) {
@@ -161,6 +170,13 @@ def call(Map args) {
           withCredentials([usernamePassword(credentialsId: publishCredentialsId, usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
             sh "$gradleCommand publish -P$publishUsernameProperty=\$USERNAME -P$publishPasswordProperty=\$PASSWORD"
           }
+        }
+      }
+
+      stage('Delete workspace') {
+        when { expression { return deleteWorkspaceAfterbuild } }
+        steps {
+          cleanWs()
         }
       }
     }
