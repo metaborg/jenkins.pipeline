@@ -1,13 +1,18 @@
 def call(Map args) {
   String upstreamProjects
 
-  boolean useWrapper
+  boolean gradleWrapper
+  String  gradleJvmArgs
+  boolean gradleBuildCache
+  boolean gradleDaemon
+  boolean gradleParallel
   boolean gradleRefreshDependencies
+
   boolean publish
   boolean publishTaggedOnly
-  String publishCredentialsId
-  String publishUsernameProperty
-  String publishPasswordProperty
+  String  publishCredentialsId
+  String  publishUsernameProperty
+  String  publishPasswordProperty
 
   String gradleCommand
 
@@ -37,12 +42,44 @@ def call(Map args) {
             }
 
 
-            if(props['useWrapper'] != null) {
-              useWrapper = props['useWrapper'] == 'true'
-            } else if(args?.useWrapper != null) {
-              useWrapper = args.useWrapper
+            if(props['gradleWrapper'] != null) {
+              gradleWrapper = props['gradleWrapper'] == 'true'
+            } else if(args?.gradleWrapper != null) {
+              gradleWrapper = args.gradleWrapper
             } else {
-              useWrapper = fileExists('gradlew')
+              gradleWrapper = fileExists('gradlew')
+            }
+
+            if(props['gradleJvmArgs'] != null) {
+              gradleJvmArgs = props['gradleJvmArgs']
+            } else if(args?.gradleJvmArgs != null) {
+              gradleJvmArgs = args.gradleJvmArgs
+            } else {
+              gradleJvmArgs = "-Xmx2G -Xss16M"
+            }
+
+            if(props['gradleBuildCache'] != null) {
+              gradleBuildCache = props['gradleBuildCache'] == 'true'
+            } else if(args?.gradleBuildCache != null) {
+              gradleBuildCache = args.gradleBuildCache
+            } else {
+              gradleBuildCache = false
+            }
+
+            if(props['gradleDaemon'] != null) {
+              gradleDaemon = props['gradleDaemon'] == 'true'
+            } else if(args?.gradleDaemon != null) {
+              gradleDaemon = args.gradleDaemon
+            } else {
+              gradleDaemon = true
+            }
+
+            if(props['gradleParallel'] != null) {
+              gradleParallel = props['gradleParallel'] == 'true'
+            } else if(args?.gradleParallel != null) {
+              gradleParallel = args.gradleParallel
+            } else {
+              gradleParallel = false
             }
 
             if(props['gradleRefreshDependencies'] != null) {
@@ -52,6 +89,7 @@ def call(Map args) {
             } else {
               gradleRefreshDependencies = upstreamProjects != ''
             }
+
 
             if(props['publish'] != null) {
               publish = props['publish'] == 'true'
@@ -66,39 +104,34 @@ def call(Map args) {
             } else if(args?.publishTaggedOnly != null) {
               publishTaggedOnly = args.publishTaggedOnly
             } else {
-              publishTaggedOnly = BRANCH_NAME == "master"
+              publishTaggedOnly = BRANCH_NAME == 'master'
             }
 
             if(props['publishCredentialsId'] != null) {
-              publishCredentialsId = props['publishCredentialsId'] == 'true'
+              publishCredentialsId = props['publishCredentialsId']
             } else if(args?.publishCredentialsId != null) {
               publishCredentialsId = args.publishCredentialsId
             } else {
-              publishCredentialsId = "54f4266c-9654-4a93-8ba1-cab34848d8f0"
+              publishCredentialsId = '54f4266c-9654-4a93-8ba1-cab34848d8f0'
             }
 
             if(props['publishUsernameProperty'] != null) {
-              publishUsernameProperty = props['publishUsernameProperty'] == 'true'
+              publishUsernameProperty = props['publishUsernameProperty']
             } else if(args?.publishUsernameProperty != null) {
               publishUsernameProperty = args.publishUsernameProperty
             } else {
-              publishUsernameProperty = "publish.repository.metaborg.artifacts.username"
+              publishUsernameProperty = 'publish.repository.metaborg.artifacts.username'
             }
 
             if(props['publishPasswordProperty'] != null) {
-              publishPasswordProperty = props['publishPasswordProperty'] == 'true'
+              publishPasswordProperty = props['publishPasswordProperty']
             } else if(args?.publishPasswordProperty != null) {
               publishPasswordProperty = args.publishPasswordProperty
             } else {
-              publishPasswordProperty = "publish.repository.metaborg.artifacts.password"
+              publishPasswordProperty = 'publish.repository.metaborg.artifacts.password'
             }
 
-
-            if(useWrapper) {
-              gradleCommand = "./gradlew"
-            } else {
-              gradleCommand = "gradle"
-            }
+            gradleCommand = "${gradleWrapper ? './gradlew' : 'gradle'} -Dorg.gradle.jvmargs='$gradleJvmArgs' -Dorg.gradle.caching=${String.valueOf(gradleBuildCache)} -Dorg.gradle.daemon=${String.valueOf(gradleDaemon)} -Dorg.gradle.parallel=${String.valueOf(gradleParallel)}"
           }
         }
       }
