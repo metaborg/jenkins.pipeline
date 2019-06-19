@@ -170,6 +170,7 @@ def call(Map args) {
           withCredentials([usernamePassword(credentialsId: publishCredentialsId, usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
             sh "$gradleCommand publish -P$publishUsernameProperty=\$USERNAME -P$publishPasswordProperty=\$PASSWORD"
           }
+          junit '**/build/test-reports/*.xml'
         }
       }
     }
