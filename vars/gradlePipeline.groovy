@@ -121,7 +121,7 @@ def call(Map args) {
             } else if(args?.publishCredentialsId != null) {
               publishCredentialsId = args.publishCredentialsId
             } else {
-              publishCredentialsId = '54f4266c-9654-4a93-8ba1-cab34848d8f0'
+              publishCredentialsId = 'metaborg-artifacts'
             }
 
             if(props['publishUsernameProperty'] != null) {
