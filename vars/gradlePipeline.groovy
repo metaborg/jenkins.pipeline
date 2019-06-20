@@ -176,7 +176,7 @@ def call(Map args) {
 
     post {
       always {
-        junit '**/build/test-results/**/*.xml'
+        junit testResults: '**/build/test-results/**/*.xml', allowEmptyResults: true
       }
       cleanup {
         script {
