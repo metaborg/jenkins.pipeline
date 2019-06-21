@@ -145,16 +145,9 @@ def call(Map args) {
         }
       }
 
-      stage('Refresh dependencies') {
-        when { expression { return gradleRefreshDependencies } }
-        steps {
-          sh "$gradleCommand --refresh-dependencies"
-        }
-      }
-
       stage('Build') {
         steps {
-          sh "$gradleCommand build"
+          sh "$gradleCommand${gradleRefreshDependencies ? ' --refresh-dependencies' : ''} build"
         }
       }
 
