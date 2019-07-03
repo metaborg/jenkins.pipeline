@@ -1,5 +1,10 @@
 def call(Map args) {
-  String  upstreamProjects = args.upstreamProjects
+  String  upstreamProjects
+  if(args?.upstreamProjects != null && args.upstreamProjects instanceof List<String> && args.upstreamProjects.length() > 0) {
+    upstreamProjects = args.upstreamProjects.join(',')
+  } else {
+    upstreamProjects = ''
+  }
   boolean deleteWorkspaceAfterBuild
 
   boolean gradleWrapper
