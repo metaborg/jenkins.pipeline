@@ -1,14 +1,18 @@
 def call(Map args) {
-  String  upstreamProjects
-  if(args?.upstreamProjects != null && args.upstreamProjects instanceof List<String> && args.upstreamProjects.length() > 0) {
-    upstreamProjects = args.upstreamProjects.join(',')
+  String upstreamProjects
+  if(args?.upstreamProjects != null) {
+    if(args.upstreamProejcts instanceof String) {
+      upstreamProjects = args.upstreamProjects
+    } else if(args.upstreamProjects instanceof List<String> && args.upstreamProjects.size() > 0) {
+      upstreamProjects = args.upstreamProjects.join(',')
+    }
   } else {
     upstreamProjects = ''
   }
   boolean deleteWorkspaceAfterBuild
 
   boolean gradleWrapper
-  String  gradleJvmArgs
+  String gradleJvmArgs
   boolean gradleBuildCache
   boolean gradleDaemon
   boolean gradleParallel
@@ -16,9 +20,9 @@ def call(Map args) {
 
   boolean publish
   boolean publishTaggedOnly
-  String  publishCredentialsId
-  String  publishUsernameProperty
-  String  publishPasswordProperty
+  String publishCredentialsId
+  String publishUsernameProperty
+  String publishPasswordProperty
 
   String gradleCommand
 
@@ -168,7 +172,7 @@ def call(Map args) {
       always {
         junit testResults: '**/build/test-results/**/*.xml', allowEmptyResults: true
       }
-      
+
       cleanup {
         script {
           if(deleteWorkspaceAfterBuild) {
