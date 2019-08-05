@@ -1,7 +1,7 @@
 def call(Map args) {
   String upstreamProjects
   if(args?.upstreamProjects != null) {
-    if(args.upstreamProejcts instanceof String) {
+    if(args.upstreamProjects instanceof String) {
       upstreamProjects = args.upstreamProjects
     } else if(args.upstreamProjects instanceof List<String> && args.upstreamProjects.size() > 0) {
       upstreamProjects = args.upstreamProjects.join(',')
@@ -155,6 +155,7 @@ def call(Map args) {
       stage('Publish') {
         when {
           expression { return publish }
+          not(changeRequest())
           anyOf {
             not { expression { return publishTaggedOnly } }
             allOf { expression { return publishTaggedOnly }; tag "*release-*" }
