@@ -124,14 +124,14 @@ def call(Map args) {
       fixed {
         script {
           if(slackNotify) {
-            slackSend(channel: slackNotifyChannel, color: 'good', message: SlackMessage.create('fixed :party_parrot:'))
+            slackSend(channel: slackNotifyChannel, color: 'good', message: SlackMessage.create('fixed :party_parrot:', env))
           }
         }
       }
       failure {
         script {
           if(slackNotify) {
-            slackSend(channel: slackNotifyChannel, color: 'danger', message: SlackMessage.create('failed :facepalm:'))
+            slackSend(channel: slackNotifyChannel, color: 'danger', message: SlackMessage.create('failed :facepalm:', env))
           }
         }
       }
