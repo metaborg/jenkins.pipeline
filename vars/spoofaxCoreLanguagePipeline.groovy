@@ -53,7 +53,7 @@ def call(Map args) {
       stage('Prepare') {
         steps {
           script {
-            def options = new Options(args, ReadProperties.readProps())
+            def options = new Options(args, new ReadProperties().readProps())
             // General options
             deleteWorkspaceAfterBuild = options.getBoolean('deleteWorkspaceAfterBuild', false)
             // Maven options
