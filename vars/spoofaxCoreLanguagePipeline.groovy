@@ -1,4 +1,5 @@
 import mb.jenkins.pipeline.Options
+import mb.jenkins.pipeline.ReadProperties
 import mb.jenkins.pipeline.SlackMessage
 
 def call(Map args) {
@@ -52,7 +53,7 @@ def call(Map args) {
       stage('Prepare') {
         steps {
           script {
-            def options = new Options(args)
+            def options = new Options(args, ReadProperties.readProps())
             // General options
             deleteWorkspaceAfterBuild = options.getBoolean('deleteWorkspaceAfterBuild', false)
             // Maven options

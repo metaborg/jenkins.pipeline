@@ -1,15 +1,14 @@
 package mb.jenkins.pipeline
 
+
+
 class Options {
   private final Map args
   private final Map props
 
-  Options(Map args) {
+  Options(Map args, Map props) {
     this.args = args ? args : new HashMap()
-
-    def propsFile = 'jenkins.properties'
-    def hasPropsFile = fileExists(propsFile)
-    props = hasPropsFile ? readProperties(file: propsFile) : new HashMap()
+    this.props = props ? props : new HashMap()
   }
 
   boolean getBoolean(String name, boolean d) {
