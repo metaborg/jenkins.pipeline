@@ -90,7 +90,7 @@ def call(Map args) {
       stage('Deploy') {
         when {
           expression { return deploy }
-          not(changeRequest())
+          not { changeRequest() }
           anyOf {
             not { expression { return deployTaggedOnly } }
             allOf { expression { return deployTaggedOnly }; tag "*release-*" }
