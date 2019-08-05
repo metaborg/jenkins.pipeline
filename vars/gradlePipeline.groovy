@@ -1,4 +1,10 @@
+import mb.jenkins.pipeline.Options
+import mb.jenkins.pipeline.ReadProperties
+import mb.jenkins.pipeline.SlackMessage
+
 def call(Map args) {
+  // General options
+  // Upstream projects are determined before stages execute, so cannot read from properties, only read from arguments.
   String upstreamProjects
   if(args?.upstreamProjects != null) {
     if(args.upstreamProjects instanceof String) {
@@ -10,137 +16,65 @@ def call(Map args) {
     upstreamProjects = ''
   }
   boolean deleteWorkspaceAfterBuild
-
+  // Gradle options
   boolean gradleWrapper
   String gradleJvmArgs
   boolean gradleBuildCache
   boolean gradleDaemon
   boolean gradleParallel
   boolean gradleRefreshDependencies
-
+  // Publish options
   boolean publish
   boolean publishTaggedOnly
   String publishCredentialsId
   String publishUsernameProperty
   String publishPasswordProperty
-
+  // Archive options
+  boolean archive
+  String archivePattern
+  String archiveExcludes
+  // Slack options
+  boolean slackNotify
+  String slackNotifyChannel
+  // Derived options
   String gradleCommand
 
   pipeline {
     agent any
-
     environment {
-      JENKINS_NODE_COOKIE = 'dontKillMe' // Necessary for the Gradle daemon to be kept alive.
       LC_ALL = 'C' // Fix assertion in locale stuff (https://stackoverflow.com/a/49796618/499240).
     }
-
+    triggers {
+      upstream(upstreamProjects: upstreamProjects, threshold: hudson.model.Result.SUCCESS)
+    }
     stages {
       stage('Prepare') {
         steps {
           script {
-            def propsFile = 'jenkins.properties'
-            def hasPropsFile = fileExists(propsFile)
-            def props = hasPropsFile ? readProperties(file: propsFile) : new HashMap()
-
-
-            if(props['deleteWorkspaceAfterBuild'] != null) {
-              deleteWorkspaceAfterBuild = props['deleteWorkspaceAfterBuild'] == 'true'
-            } else if(args?.deleteWorkspaceAfterBuild != null) {
-              deleteWorkspaceAfterBuild = args.deleteWorkspaceAfterBuild
-            } else {
-              deleteWorkspaceAfterBuild = false
-            }
-
-
-            if(props['gradleWrapper'] != null) {
-              gradleWrapper = props['gradleWrapper'] == 'true'
-            } else if(args?.gradleWrapper != null) {
-              gradleWrapper = args.gradleWrapper
-            } else {
-              gradleWrapper = fileExists('gradlew')
-            }
-
-            if(props['gradleJvmArgs'] != null) {
-              gradleJvmArgs = props['gradleJvmArgs']
-            } else if(args?.gradleJvmArgs != null) {
-              gradleJvmArgs = args.gradleJvmArgs
-            } else {
-              gradleJvmArgs = '-Xmx2G -Xss16M'
-            }
-
-            if(props['gradleBuildCache'] != null) {
-              gradleBuildCache = props['gradleBuildCache'] == 'true'
-            } else if(args?.gradleBuildCache != null) {
-              gradleBuildCache = args.gradleBuildCache
-            } else {
-              gradleBuildCache = false
-            }
-
-            if(props['gradleDaemon'] != null) {
-              gradleDaemon = props['gradleDaemon'] == 'true'
-            } else if(args?.gradleDaemon != null) {
-              gradleDaemon = args.gradleDaemon
-            } else {
-              gradleDaemon = true
-            }
-
-            if(props['gradleParallel'] != null) {
-              gradleParallel = props['gradleParallel'] == 'true'
-            } else if(args?.gradleParallel != null) {
-              gradleParallel = args.gradleParallel
-            } else {
-              gradleParallel = false
-            }
-
-            if(props['gradleRefreshDependencies'] != null) {
-              gradleRefreshDependencies = props['gradleRefreshDependencies'] == 'true'
-            } else if(args?.gradleRefreshDependencies != null) {
-              gradleRefreshDependencies = args.gradleRefreshDependencies
-            } else {
-              gradleRefreshDependencies = upstreamProjects != ''
-            }
-
-
-            if(props['publish'] != null) {
-              publish = props['publish'] == 'true'
-            } else if(args?.publish != null) {
-              publish = args.publish
-            } else {
-              publish = true
-            }
-
-            if(props['publishTaggedOnly'] != null) {
-              publishTaggedOnly = props['publishTaggedOnly'] == 'true'
-            } else if(args?.publishTaggedOnly != null) {
-              publishTaggedOnly = args.publishTaggedOnly
-            } else {
-              publishTaggedOnly = BRANCH_NAME == 'master'
-            }
-
-            if(props['publishCredentialsId'] != null) {
-              publishCredentialsId = props['publishCredentialsId']
-            } else if(args?.publishCredentialsId != null) {
-              publishCredentialsId = args.publishCredentialsId
-            } else {
-              publishCredentialsId = 'metaborg-artifacts'
-            }
-
-            if(props['publishUsernameProperty'] != null) {
-              publishUsernameProperty = props['publishUsernameProperty']
-            } else if(args?.publishUsernameProperty != null) {
-              publishUsernameProperty = args.publishUsernameProperty
-            } else {
-              publishUsernameProperty = 'publish.repository.metaborg.artifacts.username'
-            }
-
-            if(props['publishPasswordProperty'] != null) {
-              publishPasswordProperty = props['publishPasswordProperty']
-            } else if(args?.publishPasswordProperty != null) {
-              publishPasswordProperty = args.publishPasswordProperty
-            } else {
-              publishPasswordProperty = 'publish.repository.metaborg.artifacts.password'
-            }
-
+            def options = new Options(args, new ReadProperties().readProps())
+            // General options
+            deleteWorkspaceAfterBuild = options.getBoolean('deleteWorkspaceAfterBuild', false)
+            // Gradle options
+            gradleWrapper = options.getBoolean('gradleWrapper', fileExists('gradlew'))
+            gradleJvmArgs = options.getString('gradleJvmArgs', '-Xmx2G -Xss16M')
+            gradleBuildCache = options.getBoolean('gradleBuildCache', false)
+            gradleDaemon = options.getBoolean('gradleDaemon', true)
+            gradleParallel = options.getBoolean('gradleParallel', false)
+            gradleRefreshDependencies = options.getBoolean('gradleRefreshDependencies', upstreamProjects != '')
+            // Publish options
+            publish = options.getBoolean('publish', true)
+            publishTaggedOnly = options.getBoolean('publishTaggedOnly', BRANCH_NAME == 'master')
+            publishCredentialsId = options.getString('publishCredentialsId', 'metaborg-artifacts')
+            publishUsernameProperty = options.getString('publishUsernameProperty', 'publish.repository.metaborg.artifacts.username')
+            publishPasswordProperty = options.getString('publishPasswordProperty', 'publish.repository.metaborg.artifacts.password')
+            // Archive options
+            archive = options.getBoolean('archive', false)
+            archivePattern = options.getString('archivePattern', null)
+            archiveExcludes = options.getString('archiveExcludes', null)
+            // Slack options
+            slackNotify = options.getBoolean('slackNotify', false)
+            slackNotifyChannel = options.getString('slackNotifyChannel', null)
+            // Derived options
             gradleCommand = "${gradleWrapper ? './gradlew' : 'gradle'} -Dorg.gradle.jvmargs='$gradleJvmArgs' -Dorg.gradle.caching=${String.valueOf(gradleBuildCache)} -Dorg.gradle.daemon=${String.valueOf(gradleDaemon)} -Dorg.gradle.parallel=${String.valueOf(gradleParallel)}"
           }
         }
@@ -167,13 +101,35 @@ def call(Map args) {
           }
         }
       }
+
+      stage('Archive') {
+        when {
+          expression { return archive }
+        }
+        steps {
+          archiveArtifacts(artifacts: archivePattern, excludes: archiveExcludes, onlyIfSuccessful: true)
+        }
+      }
     }
 
     post {
       always {
         junit testResults: '**/build/test-results/**/*.xml', allowEmptyResults: true
       }
-
+      fixed {
+        script {
+          if(slackNotify) {
+            slackSend(channel: slackNotifyChannel, color: 'good', message: SlackMessage.create('fixed :party_parrot:', env))
+          }
+        }
+      }
+      failure {
+        script {
+          if(slackNotify) {
+            slackSend(channel: slackNotifyChannel, color: 'danger', message: SlackMessage.create('failed :facepalm:', env))
+          }
+        }
+      }
       cleanup {
         script {
           if(deleteWorkspaceAfterBuild) {
@@ -181,10 +137,6 @@ def call(Map args) {
           }
         }
       }
-    }
-
-    triggers {
-      upstream(upstreamProjects: upstreamProjects, threshold: hudson.model.Result.SUCCESS)
     }
   }
 }

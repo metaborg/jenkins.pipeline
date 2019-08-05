@@ -4,6 +4,7 @@ import mb.jenkins.pipeline.SlackMessage
 
 def call(Map args) {
   // General options
+  // Upstream projects are determined before stages execute, so cannot read from properties, only read from arguments.
   String upstreamProjects
   if(args?.upstreamProjects != null) {
     if(args.upstreamProjects instanceof String) {
@@ -17,10 +18,10 @@ def call(Map args) {
   boolean deleteWorkspaceAfterBuild
   // Maven options
   String mavenBuildLifecycles
-  String mavenGlobalSettingsConfig
   String mavenGlobalSettingsFilePath
-  String mavenSettingsConfig
   String mavenSettingsFilePath
+  String mavenGlobalSettingsConfig
+  String mavenSettingsConfig
   String mavenOpts
   // Deploy options
   boolean deploy
@@ -58,10 +59,10 @@ def call(Map args) {
             deleteWorkspaceAfterBuild = options.getBoolean('deleteWorkspaceAfterBuild', false)
             // Maven options
             mavenBuildLifecycles = options.getString('mavenBuildLifecycles', 'clean verify')
-            mavenGlobalSettingsConfig = options.getString('mavenGlobalSettingsConfig', 'metaborg-mirror-global-maven-config')
             mavenGlobalSettingsFilePath = options.getString('mavenGlobalSettingsFilePath', null)
-            mavenSettingsConfig = options.getString('mavenSettingsConfig', 'metaborg-release-snapshot-maven-config')
             mavenSettingsFilePath = options.getString('mavenSettingsFilePath', null)
+            mavenGlobalSettingsConfig = options.getString('mavenGlobalSettingsConfig', mavenGlobalSettingsFilePath == null ? 'metaborg-mirror-global-maven-config' : null)
+            mavenSettingsConfig = options.getString('mavenSettingsConfig', mavenSettingsFilePath == null ? 'metaborg-release-snapshot-maven-config' : null)
             mavenOpts = options.getString('mavenOpts', '-Xmx1G -Xss16M')
             // Deploy options
             deploy = options.getBoolean('deploy', false)
@@ -115,13 +116,6 @@ def call(Map args) {
     }
 
     post {
-      cleanup {
-        script {
-          if(deleteWorkspaceAfterBuild) {
-            cleanWs()
-          }
-        }
-      }
       fixed {
         script {
           if(slackNotify) {
@@ -133,6 +127,13 @@ def call(Map args) {
         script {
           if(slackNotify) {
             slackSend(channel: slackNotifyChannel, color: 'danger', message: SlackMessage.create('failed :facepalm:', env))
+          }
+        }
+      }
+      cleanup {
+        script {
+          if(deleteWorkspaceAfterBuild) {
+            cleanWs()
           }
         }
       }
