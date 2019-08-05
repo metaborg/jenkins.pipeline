@@ -31,8 +31,8 @@ def call(Map args) {
   String archivePattern
   String archiveExcludes
   // Slack options
-  boolean slackNotify
-  String slackNotifyChannel
+  boolean slack
+  String slackChannel
   // Derived options
   String mavenCommand
   String eclipseQualifier
@@ -72,8 +72,8 @@ def call(Map args) {
             archivePattern = options.getString('archivePattern', '**/target/site/')
             archiveExcludes = options.getString('archiveExcludes', null)
             // Slack options
-            slackNotify = options.getBoolean('slackNotify', false)
-            slackNotifyChannel = options.getString('slackNotifyChannel', null)
+            slack = options.getBoolean('slack', false)
+            slackChannel = options.getString('slackChannel', null)
             // Derived options
             mavenCommand = "mvn -B -e"
             eclipseQualifier = sh(returnStdout: true, script: 'date +%Y%m%d%H%M').trim()
@@ -116,7 +116,20 @@ def call(Map args) {
     }
 
     post {
-      new Slack().sendInPost(slackNotify, slackNotifyChannel)
+      failure {
+        script {
+          if(slack) {
+            new Slack().sendFailure(slackChannel)
+          }
+        }
+      }
+      fixed {
+        script {
+          if(slack) {
+            new Slack().sendFixed(slackChannel)
+          }
+        }
+      }
       cleanup {
         script {
           if(deleteWorkspaceAfterBuild) {

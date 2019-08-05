@@ -12,21 +12,4 @@ def sendFixed(String channel) {
   this.send(channel, 'danger', 'fixed :party_parrot:')
 }
 
-def sendInPost(boolean enabled, String channel) {
-  failure {
-    script {
-      if(enabled) {
-        this.sendFailure(channel)
-      }
-    }
-  }
-  fixed {
-    script {
-      if(enabled) {
-        this.sendFixed(channel)
-      }
-    }
-  }
-}
-
 return this

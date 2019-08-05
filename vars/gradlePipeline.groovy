@@ -34,8 +34,8 @@ def call(Map args) {
   String archivePattern
   String archiveExcludes
   // Slack options
-  boolean slackNotify
-  String slackNotifyChannel
+  boolean slack
+  String slackChannel
   // Derived options
   String gradleCommand
 
@@ -72,8 +72,8 @@ def call(Map args) {
             archivePattern = options.getString('archivePattern', null)
             archiveExcludes = options.getString('archiveExcludes', null)
             // Slack options
-            slackNotify = options.getBoolean('slackNotify', false)
-            slackNotifyChannel = options.getString('slackNotifyChannel', null)
+            slack = options.getBoolean('slack', false)
+            slackChannel = options.getString('slackChannel', null)
             // Derived options
             gradleCommand = "${gradleWrapper ? './gradlew' : 'gradle'} -Dorg.gradle.jvmargs='$gradleJvmArgs' -Dorg.gradle.caching=${String.valueOf(gradleBuildCache)} -Dorg.gradle.daemon=${String.valueOf(gradleDaemon)} -Dorg.gradle.parallel=${String.valueOf(gradleParallel)}"
           }
@@ -116,7 +116,20 @@ def call(Map args) {
       always {
         junit testResults: '**/build/test-results/**/*.xml', allowEmptyResults: true
       }
-      new Slack().sendInPost(slackNotify, slackNotifyChannel)
+      failure {
+        script {
+          if(slack) {
+            new Slack().sendFailure(slackChannel)
+          }
+        }
+      }
+      fixed {
+        script {
+          if(slack) {
+            new Slack().sendFixed(slackChannel)
+          }
+        }
+      }
       cleanup {
         script {
           if(deleteWorkspaceAfterBuild) {
