@@ -1,6 +1,6 @@
 import mb.jenkins.pipeline.Options
 import mb.jenkins.pipeline.ReadProperties
-import mb.jenkins.pipeline.SlackMessage
+import mb.jenkins.pipeline.Slack
 
 def call(Map args) {
   // General options
@@ -116,20 +116,7 @@ def call(Map args) {
       always {
         junit testResults: '**/build/test-results/**/*.xml', allowEmptyResults: true
       }
-      fixed {
-        script {
-          if(slackNotify) {
-            slackSend(channel: slackNotifyChannel, color: 'good', message: SlackMessage.create('fixed :party_parrot:', env))
-          }
-        }
-      }
-      failure {
-        script {
-          if(slackNotify) {
-            slackSend(channel: slackNotifyChannel, color: 'danger', message: SlackMessage.create('failed :facepalm:', env))
-          }
-        }
-      }
+      new Slack().sendInPost(slackNotify, slackNotifyChannel)
       cleanup {
         script {
           if(deleteWorkspaceAfterBuild) {

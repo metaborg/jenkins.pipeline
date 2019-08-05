@@ -1,7 +1,5 @@
 package mb.jenkins.pipeline
 
-
-
 class Options {
   private final Map args
   private final Map props
