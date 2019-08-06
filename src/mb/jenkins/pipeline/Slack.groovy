@@ -9,7 +9,7 @@ def sendFailure(String channel) {
 }
 
 def sendFixed(String channel) {
-  this.send(channel, 'danger', 'fixed :party_parrot:')
+  this.send(channel, 'good', 'fixed :party_parrot:')
 }
 
 return this
