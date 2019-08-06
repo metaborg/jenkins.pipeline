@@ -25,7 +25,10 @@ def call(Map args) {
   String mavenOpts
   // Deploy options
   boolean deploy
-  boolean deployTaggedOnly
+  boolean deployRelease
+  boolean deployReleaseTagPattern
+  boolean deploySnapshot
+  boolean deploySnapshotBranchPattern
   // Archive options
   boolean archive
   String archivePattern
@@ -42,12 +45,13 @@ def call(Map args) {
     environment {
       LC_ALL = 'C' // Fix assertion in locale stuff (https://stackoverflow.com/a/49796618/499240).
     }
-    options {
-      buildDiscarder(logRotator(artifactNumToKeepStr: '3'))
-      disableConcurrentBuilds()
-    }
     triggers {
       upstream(upstreamProjects: upstreamProjects, threshold: hudson.model.Result.SUCCESS)
+      snapshotDependencies()
+    }
+    options {
+      buildDiscarder logRotator(artifactNumToKeepStr: '3')
+      disableConcurrentBuilds()
     }
 
     stages {
@@ -66,7 +70,10 @@ def call(Map args) {
             mavenOpts = options.getString('mavenOpts', '-Xmx1G -Xss16M')
             // Deploy options
             deploy = options.getBoolean('deploy', false)
-            deployTaggedOnly = options.getBoolean('deployTaggedOnly', BRANCH_NAME == 'master')
+            deployRelease = options.getBoolean('deployRelease', false)
+            deployReleaseTagPattern = options.getString('deployReleaseTagPattern', 'v*')
+            deploySnapshot = options.getBoolean('deploySnapshot', false)
+            deploySnapshotBranchPattern = options.getString('deploySnapshotBranchPattern', 'master')
             // Archive options
             archive = options.getBoolean('archive', true)
             archivePattern = options.getString('archivePattern', '**/target/site/')
@@ -83,24 +90,54 @@ def call(Map args) {
 
       stage('Build') {
         steps {
-          withMaven() {
+          withMaven(
+            globalMavenSettingsFilePath: mavenGlobalSettingsFilePath,
+            mavenSettingsFilePath: mavenSettingsFilePath,
+            mavenGlobalSettingsConfig: mavenGlobalSettingsConfig,
+            mavenSettingsConfig: mavenSettingsConfig,
+            mavenOpts: mavenOpts
+          ) {
             sh "$mavenCommand -U $mavenBuildLifecycles -DforceContextQualifier=$eclipseQualifier"
           }
         }
       }
 
-      stage('Deploy') {
+      stage('Deploy Release') {
         when {
           expression { return deploy }
+          expression { return deployRelease }
+          tag deployReleaseTagPattern
           not { changeRequest() }
-          anyOf {
-            not { expression { return deployTaggedOnly } }
-            allOf { expression { return deployTaggedOnly }; tag "*release-*" }
-          }
         }
         steps {
-          withMaven() {
-            sh "$mavenCommand deploy -DforceContextQualifier=$eclipseQualifier"
+          withMaven(
+            globalMavenSettingsFilePath: mavenGlobalSettingsFilePath,
+            mavenSettingsFilePath: mavenSettingsFilePath,
+            mavenGlobalSettingsConfig: mavenGlobalSettingsConfig,
+            mavenSettingsConfig: mavenSettingsConfig,
+            mavenOpts: mavenOpts
+          ) {
+            sh "$mavenCommand deploy -P release -DskipTests -Dmaven.test.skip=true -DforceContextQualifier=$eclipseQualifier"
+          }
+        }
+      }
+
+      stage('Deploy Snapshot') {
+        when {
+          expression { return deploy }
+          expression { return deploySnapshot }
+          branch deploySnapshotBranchPattern
+          not { changeRequest() }
+        }
+        steps {
+          withMaven(
+            globalMavenSettingsFilePath: mavenGlobalSettingsFilePath,
+            mavenSettingsFilePath: mavenSettingsFilePath,
+            mavenGlobalSettingsConfig: mavenGlobalSettingsConfig,
+            mavenSettingsConfig: mavenSettingsConfig,
+            mavenOpts: mavenOpts
+          ) {
+            sh "$mavenCommand deploy-DskipTests -Dmaven.test.skip=true -DforceContextQualifier=$eclipseQualifier"
           }
         }
       }

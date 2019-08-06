@@ -47,6 +47,9 @@ def call(Map args) {
     triggers {
       upstream(upstreamProjects: upstreamProjects, threshold: hudson.model.Result.SUCCESS)
     }
+    options {
+      buildDiscarder logRotator(artifactNumToKeepStr: '3')
+    }
     stages {
       stage('Prepare') {
         steps {
