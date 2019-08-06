@@ -93,7 +93,7 @@ def call(Map args) {
           withMaven(
             globalMavenSettingsFilePath: mavenGlobalSettingsFilePath,
             mavenSettingsFilePath: mavenSettingsFilePath,
-            mavenGlobalSettingsConfig: mavenGlobalSettingsConfig,
+            globalMavenSettingsConfig: mavenGlobalSettingsConfig,
             mavenSettingsConfig: mavenSettingsConfig,
             mavenOpts: mavenOpts
           ) {
@@ -113,7 +113,7 @@ def call(Map args) {
           withMaven(
             globalMavenSettingsFilePath: mavenGlobalSettingsFilePath,
             mavenSettingsFilePath: mavenSettingsFilePath,
-            mavenGlobalSettingsConfig: mavenGlobalSettingsConfig,
+            globalMavenSettingsConfig: mavenGlobalSettingsConfig,
             mavenSettingsConfig: mavenSettingsConfig,
             mavenOpts: mavenOpts
           ) {
@@ -133,7 +133,7 @@ def call(Map args) {
           withMaven(
             globalMavenSettingsFilePath: mavenGlobalSettingsFilePath,
             mavenSettingsFilePath: mavenSettingsFilePath,
-            mavenGlobalSettingsConfig: mavenGlobalSettingsConfig,
+            globalMavenSettingsConfig: mavenGlobalSettingsConfig,
             mavenSettingsConfig: mavenSettingsConfig,
             mavenOpts: mavenOpts
           ) {
