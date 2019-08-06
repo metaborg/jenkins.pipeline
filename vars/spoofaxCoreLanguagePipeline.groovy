@@ -26,9 +26,9 @@ def call(Map args) {
   // Deploy options
   boolean deploy
   boolean deployRelease
-  boolean deployReleaseTagPattern
+  String deployReleaseTagPattern
   boolean deploySnapshot
-  boolean deploySnapshotBranchPattern
+  String deploySnapshotBranchPattern
   // Archive options
   boolean archive
   String archivePattern
