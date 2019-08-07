@@ -25,10 +25,15 @@ def call(Map args) {
   String mavenOpts
   // Deploy options
   boolean deploy
+  String deployServerId
   boolean deployRelease
   String deployReleaseTagPattern
+  String deployReleaseServerId
+  String deployReleaseUrl
   boolean deploySnapshot
   String deploySnapshotBranchPattern
+  String deploySnapshotServerId
+  String deploySnapshotUrl
   // Archive options
   boolean archive
   String archivePattern
@@ -39,6 +44,7 @@ def call(Map args) {
   // Derived options
   String mavenCommand
   String eclipseQualifier
+  String deployCommandSuffix
 
   pipeline {
     agent any
@@ -70,10 +76,15 @@ def call(Map args) {
             mavenOpts = options.getString('mavenOpts', '-Xmx1G -Xss16M')
             // Deploy options
             deploy = options.getBoolean('deploy', false)
-            deployRelease = options.getBoolean('deployRelease', false)
+            deployServerId = options.getString('deployServerId', 'metaborg-nexus')
+            deployRelease = options.getBoolean('deployRelease', deploy)
             deployReleaseTagPattern = options.getString('deployReleaseTagPattern', 'v*')
-            deploySnapshot = options.getBoolean('deploySnapshot', false)
+            deployReleaseServerId = options.getString('deployReleaseServerId', deployServerId)
+            deployReleaseUrl = options.getString('deployReleaseUrl', null)
+            deploySnapshot = options.getBoolean('deploySnapshot', deploy)
             deploySnapshotBranchPattern = options.getString('deploySnapshotBranchPattern', 'master')
+            deploySnapshotServerId = options.getString('deploySnapshotServerId', deployServerId)
+            deploySnapshotUrl = options.getString('deploySnapshotUrl', null)
             // Archive options
             archive = options.getBoolean('archive', true)
             archivePattern = options.getString('archivePattern', '**/target/site/')
@@ -84,6 +95,7 @@ def call(Map args) {
             // Derived options
             mavenCommand = "mvn -B -e"
             eclipseQualifier = sh(returnStdout: true, script: 'date +%Y%m%d%H%M').trim()
+            deployCommandSuffix = "-DskipTests -Dmaven.test.skip=true -DforceContextQualifier=$eclipseQualifier${(deployReleaseServerId != null && deployReleaseUrl != null) ? " -DaltReleaseDeploymentRepository='$deployReleaseServerId::default::$deployReleaseUrl'" : ''}${(deploySnapshotServerId != null && deploySnapshotUrl != null) ? " -DaltSnapshotDeploymentRepository='$deploySnapshotServerId::default::$deploySnapshotUrl'" : ''}"
           }
         }
       }
@@ -117,7 +129,7 @@ def call(Map args) {
             mavenSettingsConfig: mavenSettingsConfig,
             mavenOpts: mavenOpts
           ) {
-            sh "$mavenCommand deploy -P release -DskipTests -Dmaven.test.skip=true -DforceContextQualifier=$eclipseQualifier"
+            sh "$mavenCommand deploy -P release $deployCommandSuffix"
           }
         }
       }
@@ -137,7 +149,7 @@ def call(Map args) {
             mavenSettingsConfig: mavenSettingsConfig,
             mavenOpts: mavenOpts
           ) {
-            sh "$mavenCommand deploy-DskipTests -Dmaven.test.skip=true -DforceContextQualifier=$eclipseQualifier"
+            sh "$mavenCommand deploy $deployCommandSuffix"
           }
         }
       }
