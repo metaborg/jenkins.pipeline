@@ -53,7 +53,6 @@ def call(Map args) {
     }
     triggers {
       upstream(upstreamProjects: upstreamProjects, threshold: hudson.model.Result.SUCCESS)
-      snapshotDependencies()
     }
     options {
       buildDiscarder logRotator(artifactNumToKeepStr: '3')
