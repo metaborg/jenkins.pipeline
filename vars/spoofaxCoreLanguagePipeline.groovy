@@ -71,8 +71,8 @@ def call(Map args) {
             mavenBuildLifecycles = options.getString('mavenBuildLifecycles', 'clean verify')
             mavenGlobalSettingsFilePath = options.getString('mavenGlobalSettingsFilePath', null)
             mavenSettingsFilePath = options.getString('mavenSettingsFilePath', null)
-            mavenGlobalSettingsConfig = options.getString('mavenGlobalSettingsConfig', (mavenGlobalSettingsFilePath == null) ? 'metaborg-mirror-deploy-global-maven-config' : null)
-            mavenSettingsConfig = options.getString('mavenSettingsConfig', (mavenSettingsFilePath == null) ? 'metaborg-release-snapshot-maven-config' : null)
+            mavenGlobalSettingsConfig = options.getString('mavenGlobalSettingsConfig', mavenGlobalSettingsFilePath == null ? 'metaborg-mirror-deploy-global-maven-config' : null)
+            mavenSettingsConfig = options.getString('mavenSettingsConfig', mavenSettingsFilePath == null ? 'metaborg-release-snapshot-maven-config' : null)
             mavenOpts = options.getString('mavenOpts', '-Xmx1G -Xss16M')
             // Deploy options
             deploy = options.getBoolean('deploy', false)
@@ -103,10 +103,10 @@ def call(Map args) {
       stage('Build') {
         steps {
           withMaven(
-            globalMavenSettingsConfig: mavenGlobalSettingsConfig,
-            mavenSettingsConfig: mavenSettingsConfig,
             globalMavenSettingsFilePath: mavenGlobalSettingsFilePath,
             mavenSettingsFilePath: mavenSettingsFilePath,
+            globalMavenSettingsConfig: mavenGlobalSettingsConfig,
+            mavenSettingsConfig: mavenSettingsConfig,
             mavenOpts: mavenOpts
           ) {
             sh "$mavenCommand -U $mavenBuildLifecycles -DforceContextQualifier=$eclipseQualifier"
@@ -123,10 +123,10 @@ def call(Map args) {
         }
         steps {
           withMaven(
-            globalMavenSettingsConfig: mavenGlobalSettingsConfig,
-            mavenSettingsConfig: mavenSettingsConfig,
             globalMavenSettingsFilePath: mavenGlobalSettingsFilePath,
             mavenSettingsFilePath: mavenSettingsFilePath,
+            globalMavenSettingsConfig: mavenGlobalSettingsConfig,
+            mavenSettingsConfig: mavenSettingsConfig,
             mavenOpts: mavenOpts
           ) {
             sh "$mavenCommand deploy -P release $deployCommandSuffix"
@@ -143,10 +143,10 @@ def call(Map args) {
         }
         steps {
           withMaven(
-            globalMavenSettingsConfig: mavenGlobalSettingsConfig,
-            mavenSettingsConfig: mavenSettingsConfig,
             globalMavenSettingsFilePath: mavenGlobalSettingsFilePath,
             mavenSettingsFilePath: mavenSettingsFilePath,
+            globalMavenSettingsConfig: mavenGlobalSettingsConfig,
+            mavenSettingsConfig: mavenSettingsConfig,
             mavenOpts: mavenOpts
           ) {
             sh "$mavenCommand deploy $deployCommandSuffix"
