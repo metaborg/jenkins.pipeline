@@ -71,7 +71,7 @@ def call(Map args) {
             mavenBuildLifecycles = options.getString('mavenBuildLifecycles', 'clean verify')
             mavenGlobalSettingsFilePath = options.getString('mavenGlobalSettingsFilePath', null)
             mavenSettingsFilePath = options.getString('mavenSettingsFilePath', null)
-            mavenGlobalSettingsConfig = options.getString('mavenGlobalSettingsConfig', mavenGlobalSettingsFilePath == null ? 'metaborg-mirror-global-maven-config' : null)
+            mavenGlobalSettingsConfig = options.getString('mavenGlobalSettingsConfig', mavenGlobalSettingsFilePath == null ? 'metaborg-mirror-deploy-global-maven-config' : null)
             mavenSettingsConfig = options.getString('mavenSettingsConfig', mavenSettingsFilePath == null ? 'metaborg-release-snapshot-maven-config' : null)
             mavenOpts = options.getString('mavenOpts', '-Xmx1G -Xss16M')
             // Deploy options
