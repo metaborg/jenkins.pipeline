@@ -19,6 +19,8 @@ def call(Map args) {
   // Gradle options
   boolean gradleWrapper
   String gradleJvmArgs
+  String gradleArgs
+  boolean gradleStacktrace
   boolean gradleBuildCache
   boolean gradleDaemon
   boolean gradleParallel
@@ -60,6 +62,8 @@ def call(Map args) {
             // Gradle options
             gradleWrapper = options.getBoolean('gradleWrapper', fileExists('gradlew'))
             gradleJvmArgs = options.getString('gradleJvmArgs', '-Xmx2G -Xss16M')
+            gradleArgs = options.getString('gradleArgs', '')
+            gradleStacktrace = options.getBoolean('gradleStacktrace', true)
             gradleBuildCache = options.getBoolean('gradleBuildCache', false)
             gradleDaemon = options.getBoolean('gradleDaemon', true)
             gradleParallel = options.getBoolean('gradleParallel', false)
@@ -78,7 +82,7 @@ def call(Map args) {
             slack = options.getBoolean('slack', false)
             slackChannel = options.getString('slackChannel', null)
             // Derived options
-            gradleCommand = "${gradleWrapper ? './gradlew' : 'gradle'} -Dorg.gradle.jvmargs='$gradleJvmArgs' -Dorg.gradle.caching=${String.valueOf(gradleBuildCache)} -Dorg.gradle.daemon=${String.valueOf(gradleDaemon)} -Dorg.gradle.parallel=${String.valueOf(gradleParallel)}"
+            gradleCommand = "${gradleWrapper ? './gradlew' : 'gradle'} -Dorg.gradle.jvmargs='$gradleJvmArgs' $gradleArgs ${gradleStacktrace ? '--stacktrace' : ''} -Dorg.gradle.caching=${String.valueOf(gradleBuildCache)} -Dorg.gradle.daemon=${String.valueOf(gradleDaemon)} -Dorg.gradle.parallel=${String.valueOf(gradleParallel)}"
           }
         }
       }
