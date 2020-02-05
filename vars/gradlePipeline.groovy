@@ -20,6 +20,8 @@ def call(Map args) {
   boolean gradleWrapper
   String gradleJvmArgs
   String gradleArgs
+  String gradleBuildTasks
+  String gradlePublishTasks
   boolean gradleStacktrace
   boolean gradleBuildCache
   boolean gradleDaemon
@@ -63,6 +65,8 @@ def call(Map args) {
             gradleWrapper = options.getBoolean('gradleWrapper', fileExists('gradlew'))
             gradleJvmArgs = options.getString('gradleJvmArgs', '-Xmx2G -Xss16M')
             gradleArgs = options.getString('gradleArgs', '')
+            gradleBuildTasks = options.getString('gradleBuildTasks', 'buildAll')
+            gradlePublishTasks = options.getString('gradlePublishTasks', 'publishAll')
             gradleStacktrace = options.getBoolean('gradleStacktrace', true)
             gradleBuildCache = options.getBoolean('gradleBuildCache', false)
             gradleDaemon = options.getBoolean('gradleDaemon', true)
@@ -89,7 +93,7 @@ def call(Map args) {
 
       stage('Build') {
         steps {
-          sh "$gradleCommand${gradleRefreshDependencies ? ' --refresh-dependencies' : ''} build"
+          sh "$gradleCommand${gradleRefreshDependencies ? ' --refresh-dependencies' : ''} $gradleBuildTasks"
         }
       }
 
@@ -104,7 +108,7 @@ def call(Map args) {
         }
         steps {
           withCredentials([usernamePassword(credentialsId: publishCredentialsId, usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
-            sh "$gradleCommand publish -P$publishUsernameProperty=\$USERNAME -P$publishPasswordProperty=\$PASSWORD"
+            sh "$gradleCommand $gradlePublishTasks -P$publishUsernameProperty=\$USERNAME -P$publishPasswordProperty=\$PASSWORD"
           }
         }
       }
