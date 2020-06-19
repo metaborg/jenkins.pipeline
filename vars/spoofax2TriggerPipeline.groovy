@@ -13,7 +13,7 @@ def call(Map args) {
     stages {
       stage('Trigger') {
         steps {
-          build '/spoofax-trigger'
+          build job: '/spoofax-trigger', propagate: false, wait: false
         }
       }
     }
