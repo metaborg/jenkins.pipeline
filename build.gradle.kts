@@ -1,6 +1,6 @@
 plugins {
-  id("org.metaborg.gradle.config.root-project") version "0.3.12"
-  id("org.metaborg.gitonium") version "0.1.2"
+  id("org.metaborg.gradle.config.root-project") version "0.3.21"
+  id("org.metaborg.gitonium") version "0.1.3"
   groovy
 }
 
@@ -23,5 +23,5 @@ sourceSets {
 }
 
 dependencies {
-  implementation("org.codehaus.groovy:groovy-all:2.5.5")
+  implementation("org.codehaus.groovy:groovy-all:3.0.4")
 }
