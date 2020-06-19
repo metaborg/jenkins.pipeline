@@ -17,7 +17,7 @@ def call(Map args) {
         steps {
           script {
             def options = new Options(args, new ReadProperties().readProps())
-            slack = options.getBoolean('slack', true)
+            slack = options.getBoolean('slack', false)
             slackChannel = options.getString('slackChannel', '#spoofax-dev')
           }
         }
