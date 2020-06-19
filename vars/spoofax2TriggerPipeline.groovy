@@ -1,10 +1,8 @@
-import mb.jenkins.pipeline.Options
-import mb.jenkins.pipeline.ReadProperties
 import mb.jenkins.pipeline.Slack
 
 def call(Map args) {
-  boolean slack
-  String slackChannel
+  boolean slack = false
+  String slackChannel = '#spoofax-dev'
 
   pipeline {
     agent none
@@ -13,22 +11,12 @@ def call(Map args) {
       skipDefaultCheckout()
     }
     stages {
-      stage('Prepare') {
-        steps {
-          script {
-            def options = new Options(args, new ReadProperties().readProps())
-            slack = options.getBoolean('slack', false)
-            slackChannel = options.getString('slackChannel', '#spoofax-dev')
-          }
-        }
-      }
       stage('Trigger') {
         steps {
           build '/spoofax-trigger'
         }
       }
     }
-
     post {
       failure {
         script {
