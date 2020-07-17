@@ -30,6 +30,7 @@ def call(Map args) {
   // Release options
   String releaseTagPattern
   // Build options
+  String preBuildTask
   boolean buildMasterBranch
   boolean buildDevelopBranch
   boolean buildOtherBranch
@@ -84,6 +85,7 @@ def call(Map args) {
             // Release options
             releaseTagPattern = options.getString('releaseTagPattern', '*release-*')
             // Build options
+            preBuildTask = options.getString('preBuildTask', null)
             buildMasterBranch = options.getBoolean('buildMasterBranch', true)
             buildDevelopBranch = options.getBoolean('buildDevelopBranch', true)
             buildOtherBranch = options.getBoolean('buildOtherBranch', true)
@@ -121,6 +123,11 @@ def call(Map args) {
           }
         }
         steps {
+          script {
+            if(preBuildTask != null) {
+              sh "$gradleCommand $preBuildTask"
+            }
+          }
           sh "$gradleCommand${gradleRefreshDependencies ? ' --refresh-dependencies' : ''} $gradleBuildTasks"
         }
       }
