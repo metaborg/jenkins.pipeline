@@ -125,7 +125,10 @@ def call(Map args) {
         steps {
           script {
             if(preBuildTask != null) {
-              sh "$gradleCommand $preBuildTask"
+              // HACK: run preBuildTask under ssh-agent, as these commands typically check out additional code from git.
+              sshagent(['git-metaborgbot-ssh']) {
+                sh "$gradleCommand $preBuildTask"
+              }
             }
           }
           sh "$gradleCommand${gradleRefreshDependencies ? ' --refresh-dependencies' : ''} $gradleBuildTasks"
