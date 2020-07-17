@@ -27,9 +27,18 @@ def call(Map args) {
   boolean gradleDaemon
   boolean gradleParallel
   boolean gradleRefreshDependencies
+  // Release options
+  String releaseTagPattern
+  // Build options
+  boolean buildMasterBranch
+  boolean buildDevelopBranch
+  boolean buildOtherBranch
+  boolean buildTag
+  boolean buildReleaseTag
+  boolean buildChangeRequest
   // Publish options
   boolean publish
-  boolean publishTaggedOnly
+  boolean publishReleaseTagOnly
   String publishCredentialsId
   String publishUsernameProperty
   String publishPasswordProperty
@@ -70,11 +79,20 @@ def call(Map args) {
             gradleStacktrace = options.getBoolean('gradleStacktrace', true)
             gradleBuildCache = options.getBoolean('gradleBuildCache', false)
             gradleDaemon = options.getBoolean('gradleDaemon', true)
-            gradleParallel = options.getBoolean('gradleParallel', false)
+            gradleParallel = options.getBoolean('gradleParallel', true)
             gradleRefreshDependencies = options.getBoolean('gradleRefreshDependencies', upstreamProjects != '')
+            // Release options
+            releaseTagPattern = options.getString('releaseTagPattern', '*release-*')
+            // Build options
+            buildMasterBranch = options.getBoolean('buildMasterBranch', true)
+            buildDevelopBranch = options.getBoolean('buildDevelopBranch', true)
+            buildOtherBranch = options.getBoolean('buildOtherBranch', true)
+            buildTag = options.getBoolean('buildTag', true)
+            buildReleaseTag = options.getBoolean('buildReleaseTag', true)
+            buildChangeRequest = options.getBoolean('buildChangeRequest', false)
             // Publish options
             publish = options.getBoolean('publish', true)
-            publishTaggedOnly = options.getBoolean('publishTaggedOnly', BRANCH_NAME == 'master')
+            publishReleaseTagOnly = options.getBoolean('publishReleaseTagOnly', BRANCH_NAME == 'master')
             publishCredentialsId = options.getString('publishCredentialsId', 'metaborg-artifacts')
             publishUsernameProperty = options.getString('publishUsernameProperty', 'publish.repository.metaborg.artifacts.username')
             publishPasswordProperty = options.getString('publishPasswordProperty', 'publish.repository.metaborg.artifacts.password')
@@ -93,6 +111,14 @@ def call(Map args) {
 
       stage('Build') {
         steps {
+          anyOf {
+            allOf { expression { return buildMasterBranch }; branch 'master' }
+            allOf { expression { return buildDevelopBranch }; branch 'develop' }
+            allOf { expression { return buildOtherBranch }; not { branch 'master' }; not { branch 'develop' } }
+            allOf { expression { return buildTag }; buildingTag() }
+            allOf { expression { return buildReleaseTag }; tag releaseTagPattern }
+            allOf { expression { return buildChangeRequest }; changeRequest() }
+          }
           sh "$gradleCommand${gradleRefreshDependencies ? ' --refresh-dependencies' : ''} $gradleBuildTasks"
         }
       }
@@ -102,8 +128,8 @@ def call(Map args) {
           expression { return publish }
           not { changeRequest() }
           anyOf {
-            not { expression { return publishTaggedOnly } }
-            allOf { expression { return publishTaggedOnly }; tag "*release-*" }
+            not { expression { return publishReleaseTagOnly } }
+            allOf { expression { return publishReleaseTagOnly }; tag releaseTagPattern }
           }
         }
         steps {
