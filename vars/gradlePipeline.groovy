@@ -110,17 +110,17 @@ def call(Map args) {
       }
 
       stage('Build') {
-        steps {
-          when {
-            anyOf {
-              allOf { expression { return buildMasterBranch }; branch 'master' }
-              allOf { expression { return buildDevelopBranch }; branch 'develop' }
-              allOf { expression { return buildOtherBranch }; not { branch 'master' }; not { branch 'develop' } }
-              allOf { expression { return buildTag }; buildingTag() }
-              allOf { expression { return buildReleaseTag }; tag releaseTagPattern }
-              allOf { expression { return buildChangeRequest }; changeRequest() }
-            }
+        when {
+          anyOf {
+            allOf { expression { return buildMasterBranch }; branch 'master' }
+            allOf { expression { return buildDevelopBranch }; branch 'develop' }
+            allOf { expression { return buildOtherBranch }; not { branch 'master' }; not { branch 'develop' } }
+            allOf { expression { return buildTag }; buildingTag() }
+            allOf { expression { return buildReleaseTag }; tag releaseTagPattern }
+            allOf { expression { return buildChangeRequest }; changeRequest() }
           }
+        }
+        steps {
           sh "$gradleCommand${gradleRefreshDependencies ? ' --refresh-dependencies' : ''} $gradleBuildTasks"
         }
       }
