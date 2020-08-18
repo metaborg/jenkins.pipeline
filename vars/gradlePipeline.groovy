@@ -65,6 +65,11 @@ def call(Map args) {
                 upstreamProjects = upstreamProjectsInput.join(',')
               }
             }
+            // Set upstream projects through `properties`build step, which can be based on data from the workspace.
+            properties([pipelineTriggers([upstream(
+              upstreamProjects: upstreamProjects,
+              threshold: 'SUCCESS'
+            )])])
             deleteWorkspaceAfterBuild = options.getBoolean('deleteWorkspaceAfterBuild', false)
             // Gradle options
             gradleWrapper = options.getBoolean('gradleWrapper', fileExists('gradlew'))
@@ -103,11 +108,6 @@ def call(Map args) {
             // Derived options
             gradleCommand = "${gradleWrapper ? './gradlew' : 'gradle'} -Dorg.gradle.jvmargs='$gradleJvmArgs' $gradleArgs ${gradleStacktrace ? '--stacktrace' : ''} -Dorg.gradle.caching=${String.valueOf(gradleBuildCache)} -Dorg.gradle.daemon=${String.valueOf(gradleDaemon)} -Dorg.gradle.parallel=${String.valueOf(gradleParallel)}"
           }
-          // Set upstream projects through `properties`build step, which can be based on data from the workspace.
-          properties([pipelineTriggers([upstream(
-            upstreamProjects: upstreamProjects,
-            threshold: 'SUCCESS'
-          )])])
         }
       }
 
