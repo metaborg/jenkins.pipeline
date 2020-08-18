@@ -6,15 +6,6 @@ def call(Map args) {
   // General options
   // Upstream projects are determined before stages execute, so cannot read from properties, only read from arguments.
   String upstreamProjects
-  if(args?.upstreamProjects != null) {
-    if(args.upstreamProjects instanceof String) {
-      upstreamProjects = args.upstreamProjects
-    } else if(args.upstreamProjects instanceof List<String> && args.upstreamProjects.size() > 0) {
-      upstreamProjects = args.upstreamProjects.join(',')
-    }
-  } else {
-    upstreamProjects = ''
-  }
   boolean deleteWorkspaceAfterBuild
   // Maven options
   String mavenBuildLifecycles
@@ -51,9 +42,6 @@ def call(Map args) {
     environment {
       LC_ALL = 'C' // Fix assertion in locale stuff (https://stackoverflow.com/a/49796618/499240).
     }
-    triggers {
-      upstream(upstreamProjects: upstreamProjects, threshold: hudson.model.Result.SUCCESS)
-    }
     options {
       buildDiscarder logRotator(artifactNumToKeepStr: '3')
       disableConcurrentBuilds()
@@ -65,6 +53,14 @@ def call(Map args) {
           script {
             def options = new Options(args, new ReadProperties().readProps())
             // General options
+            def upstreamProjectsInput = options.getString('upstreamProjects', null)
+            if(upstreamProjectsInput != null) {
+              if(upstreamProjectsInput instanceof String) {
+                upstreamProjects = upstreamProjectsInput
+              } else if(upstreamProjectsInput instanceof List<String> && upstreamProjectsInput.size() > 0) {
+                upstreamProjects = upstreamProjectsInput.join(',')
+              }
+            }
             deleteWorkspaceAfterBuild = options.getBoolean('deleteWorkspaceAfterBuild', false)
             // Maven options
             mavenBuildLifecycles = options.getString('mavenBuildLifecycles', 'clean verify')
@@ -96,6 +92,11 @@ def call(Map args) {
             eclipseQualifier = sh(returnStdout: true, script: 'date +%Y%m%d%H%M').trim()
             deployCommandSuffix = "-DskipTests -Dmaven.test.skip=true -DforceContextQualifier=$eclipseQualifier${(deployReleaseServerId != null && deployReleaseUrl != null) ? " -DaltReleaseDeploymentRepository='$deployReleaseServerId::default::$deployReleaseUrl'" : ''}${(deploySnapshotServerId != null && deploySnapshotUrl != null) ? " -DaltSnapshotDeploymentRepository='$deploySnapshotServerId::default::$deploySnapshotUrl'" : ''}"
           }
+          // Set upstream projects through `properties`build step, which can be based on data from the workspace.
+          properties([pipelineTriggers([upstream(
+            upstreamProjects: upstreamProjects,
+            threshold: 'SUCCESS'
+          )])])
         }
       }
 
