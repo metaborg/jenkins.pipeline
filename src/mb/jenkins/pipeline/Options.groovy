@@ -10,22 +10,55 @@ class Options {
   }
 
   boolean getBoolean(String name, boolean d) {
-    if(props[name] != null) {
-      return props[name] == 'true'
-    } else if(args[name] != null) {
-      return args[name]
-    } else {
-      return d
+    def prop = getProp(name)
+    if(prop != null) {
+      return prop == 'true'
     }
+    def arg = getArg(name)
+    if(arg != null) {
+      return arg
+    }
+    return d
   }
 
   String getString(String name, String d) {
-    if(props[name] != null) {
-      return props[name]
-    } else if(args[name] != null) {
-      return args[name]
-    } else {
-      return d
+    def prop = getProp(name)
+    if(prop != null) {
+      return prop
     }
+    def arg = getArg(name)
+    if(arg != null) {
+      return arg
+    }
+    return d
+  }
+
+  Object getObject(String name, Object d) {
+    def prop = getProp(name)
+    if(prop != null) {
+      return prop
+    }
+    def arg = getArg(name)
+    if(arg != null) {
+      return arg
+    }
+    return d
+  }
+
+
+  private Object get(Object obj) {
+    if(obj == null) return null
+    if(obj instanceof Closure) {
+      return obj()
+    }
+    return obj
+  }
+
+  private Object getProp(String name) {
+    return get(props[name])
+  }
+
+  private Object getArg(String name) {
+    return get(args[name])
   }
 }

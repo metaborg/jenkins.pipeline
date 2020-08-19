@@ -21,8 +21,8 @@ def call(Map args) {
   String releaseTagPattern
   // Build options
   String preBuildTask
-  boolean buildMasterBranch
-  boolean buildDevelopBranch
+  String mainBranch
+  boolean buildMainBranch
   boolean buildOtherBranch
   boolean buildTag
   boolean buildReleaseTag
@@ -57,15 +57,18 @@ def call(Map args) {
           script {
             def options = new Options(args, new ReadProperties().readProps())
             // General options
-            def upstreamProjectsInput = options.getString('upstreamProjects', null)
+            def upstreamProjectsInput = options.getObject('upstreamProjects', null)
             if(upstreamProjectsInput != null) {
               if(upstreamProjectsInput instanceof String) {
                 upstreamProjects = upstreamProjectsInput
               } else if(upstreamProjectsInput instanceof List<String> && upstreamProjectsInput.size() > 0) {
                 upstreamProjects = upstreamProjectsInput.join(',')
+              } else {
+                upstreamProjects = upstreamProjectsInput.toString()
               }
+            } else {
+              upstreamProjects = ''
             }
-            // Set upstream projects through `properties`build step, which can be based on data from the workspace.
             properties([pipelineTriggers([upstream(
               upstreamProjects: upstreamProjects,
               threshold: 'SUCCESS'
@@ -86,15 +89,15 @@ def call(Map args) {
             releaseTagPattern = options.getString('releaseTagPattern', '*release-*')
             // Build options
             preBuildTask = options.getString('preBuildTask', null)
-            buildMasterBranch = options.getBoolean('buildMasterBranch', true)
-            buildDevelopBranch = options.getBoolean('buildDevelopBranch', true)
+            mainBranch = options.getString('mainBranch', 'master')
+            buildMainBranch = options.getBoolean('buildMainBranch', true)
             buildOtherBranch = options.getBoolean('buildOtherBranch', true)
             buildTag = options.getBoolean('buildTag', true)
             buildReleaseTag = options.getBoolean('buildReleaseTag', true)
             buildChangeRequest = options.getBoolean('buildChangeRequest', false)
             // Publish options
             publish = options.getBoolean('publish', true)
-            publishReleaseTagOnly = options.getBoolean('publishReleaseTagOnly', BRANCH_NAME == 'master')
+            publishReleaseTagOnly = options.getBoolean('publishReleaseTagOnly', true)
             publishCredentialsId = options.getString('publishCredentialsId', 'metaborg-artifacts')
             publishUsernameProperty = options.getString('publishUsernameProperty', 'publish.repository.metaborg.artifacts.username')
             publishPasswordProperty = options.getString('publishPasswordProperty', 'publish.repository.metaborg.artifacts.password')
@@ -114,9 +117,8 @@ def call(Map args) {
       stage('Build') {
         when {
           anyOf {
-            allOf { expression { return buildMasterBranch }; branch 'master' }
-            allOf { expression { return buildDevelopBranch }; branch 'develop' }
-            allOf { expression { return buildOtherBranch }; not { branch 'master' }; not { branch 'develop' } }
+            allOf { expression { return buildMainBranch }; branch mainBranch }
+            allOf { expression { return buildOtherBranch }; not { branch mainBranch } }
             allOf { expression { return buildTag }; buildingTag() }
             allOf { expression { return buildReleaseTag }; tag releaseTagPattern }
             allOf { expression { return buildChangeRequest }; changeRequest() }
