@@ -21,6 +21,7 @@ def call(Map args) {
   String releaseTagPattern
   // Build options
   String preBuildTask
+  boolean build
   String mainBranch
   boolean buildMainBranch
   boolean buildOtherBranch
@@ -88,6 +89,7 @@ def call(Map args) {
             // Release options
             releaseTagPattern = options.getString('releaseTagPattern', '*release-*')
             // Build options
+            build = options.getBoolean('build', true)
             preBuildTask = options.getString('preBuildTask', null)
             mainBranch = options.getString('mainBranch', 'master')
             buildMainBranch = options.getBoolean('buildMainBranch', true)
@@ -116,6 +118,7 @@ def call(Map args) {
 
       stage('Build') {
         when {
+          expression { return build }
           anyOf {
             allOf { expression { return buildMainBranch }; branch mainBranch }
             allOf { expression { return buildOtherBranch }; not { branch mainBranch } }
