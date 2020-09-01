@@ -4,6 +4,7 @@ import mb.jenkins.pipeline.Slack
 
 def call(Map args) {
   // General options
+  boolean enableUpstreamProjectsForTags
   String upstreamProjects
   boolean deleteWorkspaceAfterBuild
   // Gradle options
@@ -58,8 +59,11 @@ def call(Map args) {
           script {
             def options = new Options(args, new ReadProperties().readProps())
             // General options
+            enableUpstreamProjectsForTags = options.getBoolean('enableUpstreamProjectsForTags', false)
             def upstreamProjectsInput = options.getObject('upstreamProjects', null)
-            if(upstreamProjectsInput != null) {
+            if(TAG_NAME && !enableUpstreamProjectsForTags) {
+              upstreamProjects = ''
+            } else if(upstreamProjectsInput != null) {
               if(upstreamProjectsInput instanceof String) {
                 upstreamProjects = upstreamProjectsInput
               } else if(upstreamProjectsInput instanceof List<String> && upstreamProjectsInput.size() > 0) {
