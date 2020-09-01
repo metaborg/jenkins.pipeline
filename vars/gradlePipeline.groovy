@@ -61,7 +61,7 @@ def call(Map args) {
             // General options
             enableUpstreamProjectsForTags = options.getBoolean('enableUpstreamProjectsForTags', false)
             def upstreamProjectsInput = options.getObject('upstreamProjects', null)
-            if(TAG_NAME && !enableUpstreamProjectsForTags) {
+            if(env.TAG_NAME && !enableUpstreamProjectsForTags) {
               upstreamProjects = ''
             } else if(upstreamProjectsInput != null) {
               if(upstreamProjectsInput instanceof String) {
