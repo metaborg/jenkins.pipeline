@@ -81,7 +81,7 @@ def call(Map args) {
             deleteWorkspaceAfterBuild = options.getBoolean('deleteWorkspaceAfterBuild', false)
             // Gradle options
             gradleWrapper = options.getBoolean('gradleWrapper', fileExists('gradlew'))
-            gradleJvmArgs = options.getString('gradleJvmArgs', '-Xmx2G -Xss16M')
+            gradleJvmArgs = options.getString('gradleJvmArgs', null)
             gradleArgs = options.getString('gradleArgs', '')
             gradleBuildTasks = options.getString('gradleBuildTasks', 'buildAll')
             gradlePublishTasks = options.getString('gradlePublishTasks', 'publishAll')
@@ -115,7 +115,7 @@ def call(Map args) {
             slack = options.getBoolean('slack', false)
             slackChannel = options.getString('slackChannel', null)
             // Derived options
-            gradleCommand = "${gradleWrapper ? './gradlew' : 'gradle'} -Dorg.gradle.jvmargs='$gradleJvmArgs' $gradleArgs ${gradleStacktrace ? '--stacktrace' : ''} -Dorg.gradle.caching=${String.valueOf(gradleBuildCache)} -Dorg.gradle.daemon=${String.valueOf(gradleDaemon)} -Dorg.gradle.parallel=${String.valueOf(gradleParallel)}"
+            gradleCommand = "${gradleWrapper ? './gradlew' : 'gradle'} ${gradleJvmArgs ? "-Dorg.gradle.jvmargs='$gradleJvmArgs'" : ''}$gradleArgs ${gradleStacktrace ? '--stacktrace' : ''} -Dorg.gradle.caching=${String.valueOf(gradleBuildCache)} -Dorg.gradle.daemon=${String.valueOf(gradleDaemon)} -Dorg.gradle.parallel=${String.valueOf(gradleParallel)}"
           }
         }
       }
