@@ -21,8 +21,9 @@ def call(Map args) {
   // Release options
   String releaseTagPattern
   // Build options
-  String preBuildTask
   boolean build
+  String preBuildCommand
+  String preBuildTask
   String mainBranch
   boolean buildMainBranch
   boolean buildOtherBranch
@@ -89,11 +90,12 @@ def call(Map args) {
             gradleBuildCache = options.getBoolean('gradleBuildCache', false)
             gradleDaemon = options.getBoolean('gradleDaemon', true)
             gradleParallel = options.getBoolean('gradleParallel', true)
-            gradleRefreshDependencies = options.getBoolean('gradleRefreshDependencies', upstreamProjects != '')
+            gradleRefreshDependencies = options.getBoolean('gradleRefreshDependencies', false)
             // Release options
             releaseTagPattern = options.getString('releaseTagPattern', '*release-*')
             // Build options
             build = options.getBoolean('build', true)
+            preBuildCommand = options.getString('preBuildCommand', null)
             preBuildTask = options.getString('preBuildTask', null)
             mainBranch = options.getString('mainBranch', 'master')
             buildMainBranch = options.getBoolean('buildMainBranch', true)
@@ -133,10 +135,15 @@ def call(Map args) {
         }
         steps {
           script {
-            if(preBuildTask != null) {
-              // HACK: run preBuildTask under ssh-agent, as these commands typically check out additional code from git.
+            if(preBuildCommand != null || preBuildTask != null) { // Skip ssh-agent without pre-build actions.
+              // Run under ssh-agent, as these commands typically check out additional code from git repositories.
               sshagent(['git-metaborgbot-ssh']) {
-                sh "$gradleCommand $preBuildTask"
+                if(preBuildCommand != null) {
+                  sh preBuildCommand
+                }
+                if(preBuildTask != null) {
+                  sh "$gradleCommand $preBuildTask"
+                }
               }
             }
           }
