@@ -17,6 +17,7 @@ def call(Map args) {
   boolean gradleBuildCache
   boolean gradleDaemon
   boolean gradleParallel
+  String gradleMaxWorkers
   boolean gradleRefreshDependencies
   // Release options
   String releaseTagPattern
@@ -90,6 +91,7 @@ def call(Map args) {
             gradleBuildCache = options.getBoolean('gradleBuildCache', false)
             gradleDaemon = options.getBoolean('gradleDaemon', true)
             gradleParallel = options.getBoolean('gradleParallel', true)
+            gradleMaxWorkers = options.getString('gradleMaxWorkers', null)
             gradleRefreshDependencies = options.getBoolean('gradleRefreshDependencies', false)
             // Release options
             releaseTagPattern = options.getString('releaseTagPattern', '*release-*')
@@ -117,7 +119,7 @@ def call(Map args) {
             slack = options.getBoolean('slack', false)
             slackChannel = options.getString('slackChannel', null)
             // Derived options
-            gradleCommand = "${gradleWrapper ? './gradlew' : 'gradle'} ${gradleJvmArgs ? "-Dorg.gradle.jvmargs='$gradleJvmArgs'" : ''}$gradleArgs ${gradleStacktrace ? '--stacktrace' : ''} -Dorg.gradle.caching=${String.valueOf(gradleBuildCache)} -Dorg.gradle.daemon=${String.valueOf(gradleDaemon)} -Dorg.gradle.parallel=${String.valueOf(gradleParallel)}"
+            gradleCommand = "${gradleWrapper ? './gradlew' : 'gradle'} ${gradleJvmArgs ? "-Dorg.gradle.jvmargs='$gradleJvmArgs'" : ''}$gradleArgs ${gradleStacktrace ? '--stacktrace' : ''} -Dorg.gradle.caching=${String.valueOf(gradleBuildCache)} -Dorg.gradle.daemon=${String.valueOf(gradleDaemon)} -Dorg.gradle.parallel=${String.valueOf(gradleParallel)}${gradleMaxWorkers ? " --max-workers=$gradleMaxWorkers" : ''}"
           }
         }
       }
