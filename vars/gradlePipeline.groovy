@@ -48,7 +48,7 @@ def call(Map args) {
   String gradleCommand
 
   pipeline {
-    agent any
+    agent { label 'spoofax3' }
     environment {
       LC_ALL = 'C' // Fix assertion in locale stuff (https://stackoverflow.com/a/49796618/499240).
     }
