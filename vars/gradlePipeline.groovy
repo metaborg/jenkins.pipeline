@@ -41,6 +41,7 @@ def call(Map args) {
   boolean archive
   String archivePattern
   String archiveExcludes
+  boolean archiveAllowEmpty
   // Slack options
   boolean slack
   String slackChannel
@@ -115,6 +116,7 @@ def call(Map args) {
             archive = options.getBoolean('archive', false)
             archivePattern = options.getString('archivePattern', null)
             archiveExcludes = options.getString('archiveExcludes', null)
+            archiveAllowEmpty = options.getBoolean('archiveAllowEmpty', true)
             // Slack options
             slack = options.getBoolean('slack', false)
             slackChannel = options.getString('slackChannel', null)
@@ -174,7 +176,7 @@ def call(Map args) {
           expression { return archive }
         }
         steps {
-          archiveArtifacts(artifacts: archivePattern, excludes: archiveExcludes, onlyIfSuccessful: true)
+          archiveArtifacts(artifacts: archivePattern, excludes: archiveExcludes, allowEmptyArchive: archiveAllowEmpty, onlyIfSuccessful: true)
         }
       }
     }
