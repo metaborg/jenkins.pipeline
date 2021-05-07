@@ -21,19 +21,25 @@ def call(Map args) {
   boolean gradleRefreshDependencies
   // Release options
   String releaseTagPattern
+  // Branch options
+  String mainBranch
+  String developBranch
   // Build options
   boolean build
   String preBuildCommand
   String preBuildTask
-  String mainBranch
   boolean buildMainBranch
+  boolean buildDevelopBranch
   boolean buildOtherBranch
   boolean buildTag
   boolean buildReleaseTag
   boolean buildChangeRequest
   // Publish options
   boolean publish
-  boolean publishReleaseTagOnly
+  boolean publishMainBranch
+  boolean publishDevelopBranch
+  boolean publishOtherBranch
+  boolean publishReleaseTag
   String publishCredentialsId
   String publishUsernameProperty
   String publishPasswordProperty
@@ -96,19 +102,25 @@ def call(Map args) {
             gradleRefreshDependencies = options.getBoolean('gradleRefreshDependencies', false)
             // Release options
             releaseTagPattern = options.getString('releaseTagPattern', '*release-*')
+            // Branch options
+            mainBranch = options.getString('mainBranch', 'master')
+            developBranch = options.getString('developBranch', 'develop')
             // Build options
             build = options.getBoolean('build', true)
             preBuildCommand = options.getString('preBuildCommand', null)
             preBuildTask = options.getString('preBuildTask', null)
-            mainBranch = options.getString('mainBranch', 'master')
             buildMainBranch = options.getBoolean('buildMainBranch', true)
+            buildDevelopBranch = options.getBoolean('buildDevelopBranch', true)
             buildOtherBranch = options.getBoolean('buildOtherBranch', true)
             buildTag = options.getBoolean('buildTag', true)
             buildReleaseTag = options.getBoolean('buildReleaseTag', true)
             buildChangeRequest = options.getBoolean('buildChangeRequest', false)
             // Publish options
             publish = options.getBoolean('publish', true)
-            publishReleaseTagOnly = options.getBoolean('publishReleaseTagOnly', true)
+            publishMainBranch = options.getBoolean('publishMainBranch', false)
+            publishDevelopBranch = options.getBoolean('publishDevelopBranch', false)
+            publishOtherBranch = options.getBoolean('publishOtherBranch', false)
+            publishReleaseTag = options.getBoolean('publishReleaseTag', true)
             publishCredentialsId = options.getString('publishCredentialsId', 'metaborg-artifacts')
             publishUsernameProperty = options.getString('publishUsernameProperty', 'publish.repository.metaborg.artifacts.username')
             publishPasswordProperty = options.getString('publishPasswordProperty', 'publish.repository.metaborg.artifacts.password')
@@ -131,7 +143,8 @@ def call(Map args) {
           expression { return build }
           anyOf {
             allOf { expression { return buildMainBranch }; branch mainBranch }
-            allOf { expression { return buildOtherBranch }; not { branch mainBranch } }
+            allOf { expression { return buildDevelopBranch }; branch developBranch }
+            allOf { expression { return buildOtherBranch }; not { branch mainBranch }; not { branch developBranch } }
             allOf { expression { return buildTag }; buildingTag() }
             allOf { expression { return buildReleaseTag }; tag releaseTagPattern }
             allOf { expression { return buildChangeRequest }; changeRequest() }
@@ -160,8 +173,10 @@ def call(Map args) {
           expression { return publish }
           not { changeRequest() }
           anyOf {
-            not { expression { return publishReleaseTagOnly } }
-            allOf { expression { return publishReleaseTagOnly }; tag releaseTagPattern }
+            allOf { expression { return publishMainBranch }; branch mainBranch }
+            allOf { expression { return publishDevelopBranch }; branch developBranch }
+            allOf { expression { return publishOtherBranch }; not { branch mainBranch }; not { branch developBranch } }
+            allOf { expression { return publishReleaseTag }; tag releaseTagPattern }
           }
         }
         steps {
