@@ -5,7 +5,7 @@ def call(Map args) {
   String slackChannel = '#spoofax-dev'
 
   pipeline {
-    agent none
+    agent { label 'spoofax-buildenv-jenkins' }
     options {
       buildDiscarder logRotator(artifactNumToKeepStr: '3')
       skipDefaultCheckout()
