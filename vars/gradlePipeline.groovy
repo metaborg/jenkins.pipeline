@@ -139,12 +139,14 @@ def call(Map args) {
       }
 
       stage('Print versions') {
-        sh 'env'
-        sh 'bash --version'
-        sh 'git --version'
-        sh 'java -version'
-        sh 'javac -version'
-        sh "${gradleWrapper ? './gradlew' : 'gradle'} --version"
+        steps {
+          sh 'env'
+          sh 'bash --version'
+          sh 'git --version'
+          sh 'java -version'
+          sh 'javac -version'
+          sh "${gradleWrapper ? './gradlew' : 'gradle'} --version"
+        }
       }
 
       stage('Build') {
