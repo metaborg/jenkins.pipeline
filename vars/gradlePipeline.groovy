@@ -4,9 +4,19 @@ import mb.jenkins.pipeline.Slack
 
 def call(Map args) {
   // General options
+  /** Whether to enable upstream project triggers for tags.
+   * (`enableUpstreamProjectsForTags`, boolean, default: false) */
   boolean enableUpstreamProjectsForTags
+  /** A comma-separated list of upstream projects that would trigger a build of this project.
+   *  (`upstreamProjects`, a single string or a list of strings, default: null) */
   String upstreamProjects
+  /** Whether a GitHub push webhook message might trigger a build.
+   * (`enableGitHubWebhook`, boolean, default: false) */
+  boolean enableGitHubWebhook
+  /** Whether to clean the workspace after a build finishes.
+   * (`deleteWorkspaceAfterBuild`, boolean, default: false) */
   boolean deleteWorkspaceAfterBuild
+
   // Gradle options
   boolean gradleWrapper
   String gradleJvmArgs
@@ -19,11 +29,14 @@ def call(Map args) {
   boolean gradleParallel
   String gradleMaxWorkers
   boolean gradleRefreshDependencies
+
   // Release options
   String releaseTagPattern
+
   // Branch options
   String mainBranch
   String developBranch
+
   // Build options
   boolean build
   String preBuildCommand
@@ -34,6 +47,7 @@ def call(Map args) {
   boolean buildTag
   boolean buildReleaseTag
   boolean buildChangeRequest
+
   // Publish options
   boolean publish
   boolean publishMainBranch
@@ -43,14 +57,17 @@ def call(Map args) {
   String publishCredentialsId
   String publishUsernameProperty
   String publishPasswordProperty
+
   // Archive options
   boolean archive
   String archivePattern
   String archiveExcludes
   boolean archiveAllowEmpty
+
   // Slack options
   boolean slack
   String slackChannel
+
   // Derived options
   String gradleCommand
 
@@ -83,11 +100,16 @@ def call(Map args) {
             } else {
               upstreamProjects = ''
             }
-            properties([pipelineTriggers([upstream(
-              upstreamProjects: upstreamProjects,
-              threshold: 'SUCCESS'
-            )])])
+            enableGitHubWebhook = options.getBoolean('enableGitHubWebhook', false)
+            properties([pipelineTriggers(
+              [upstream(
+                upstreamProjects: upstreamProjects,
+                threshold: 'SUCCESS'
+              )] +
+              (enableGitHubWebhook ? [githubPush()] : [])
+            )])
             deleteWorkspaceAfterBuild = options.getBoolean('deleteWorkspaceAfterBuild', false)
+
             // Gradle options
             gradleWrapper = options.getBoolean('gradleWrapper', fileExists('gradlew'))
             gradleJvmArgs = options.getString('gradleJvmArgs', null)
@@ -100,11 +122,14 @@ def call(Map args) {
             gradleParallel = options.getBoolean('gradleParallel', true)
             gradleMaxWorkers = options.getString('gradleMaxWorkers', null)
             gradleRefreshDependencies = options.getBoolean('gradleRefreshDependencies', false)
+
             // Release options
             releaseTagPattern = options.getString('releaseTagPattern', '*release-*')
+
             // Branch options
             mainBranch = options.getString('mainBranch', 'master')
             developBranch = options.getString('developBranch', 'develop')
+
             // Build options
             build = options.getBoolean('build', true)
             preBuildCommand = options.getString('preBuildCommand', null)
@@ -115,6 +140,7 @@ def call(Map args) {
             buildTag = options.getBoolean('buildTag', true)
             buildReleaseTag = options.getBoolean('buildReleaseTag', true)
             buildChangeRequest = options.getBoolean('buildChangeRequest', false)
+
             // Publish options
             publish = options.getBoolean('publish', true)
             publishMainBranch = options.getBoolean('publishMainBranch', false)
@@ -124,14 +150,17 @@ def call(Map args) {
             publishCredentialsId = options.getString('publishCredentialsId', 'metaborg-artifacts')
             publishUsernameProperty = options.getString('publishUsernameProperty', 'publish.repository.metaborg.artifacts.username')
             publishPasswordProperty = options.getString('publishPasswordProperty', 'publish.repository.metaborg.artifacts.password')
+
             // Archive options
             archive = options.getBoolean('archive', false)
             archivePattern = options.getString('archivePattern', null)
             archiveExcludes = options.getString('archiveExcludes', null)
             archiveAllowEmpty = options.getBoolean('archiveAllowEmpty', true)
+
             // Slack options
             slack = options.getBoolean('slack', false)
             slackChannel = options.getString('slackChannel', null)
+
             // Derived options
             gradleCommand = "${gradleWrapper ? './gradlew' : 'gradle'} ${gradleJvmArgs ? "-Dorg.gradle.jvmargs='$gradleJvmArgs'" : ''}$gradleArgs ${gradleStacktrace ? '--stacktrace' : ''} -Dorg.gradle.caching=${String.valueOf(gradleBuildCache)} -Dorg.gradle.daemon=${String.valueOf(gradleDaemon)} -Dorg.gradle.parallel=${String.valueOf(gradleParallel)}${gradleMaxWorkers ? " --max-workers=$gradleMaxWorkers" : ''}"
           }
