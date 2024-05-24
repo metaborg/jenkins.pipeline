@@ -78,6 +78,9 @@ def call(Map args) {
     }
     options {
       buildDiscarder logRotator(artifactNumToKeepStr: '3')
+      // Disable concurrently building the same project
+      // Especially for `devenv`, concurrent builds can quickly overwhelm the available memory of the builder
+      disableConcurrentBuilds()
     }
     stages {
       stage('Prepare') {
