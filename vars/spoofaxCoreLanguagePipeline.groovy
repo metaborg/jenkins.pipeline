@@ -47,7 +47,7 @@ def call(Map args) {
   String deployCommandSuffix
 
   pipeline {
-    agent any
+    agent { label 'spoofax-buildenv-jenkins' }
     // In Jenkins, under Tools, add a JDK Installation with:
     // - Name: JDK 11
     // - JAVA_HOME: /usr/lib/jvm/java-11-openjdk-amd64
