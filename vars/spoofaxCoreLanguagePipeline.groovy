@@ -68,18 +68,6 @@ def call(Map args) {
     }
 
     stages {
-      stage('Echo') {
-        // Print important variables and versions for debugging purposes.
-        echo "Job ${jobName} (base: ${jobBaseName}) on branch ${branchName}"
-        sh 'env'
-        sh 'bash --version'
-        sh 'git --version'
-        sh 'python3 --version'
-        sh 'pip3 --version'
-        sh '$JAVA_HOME/bin/java -version'
-        sh '$JAVA_HOME/bin/javac -version'
-        sh 'mvn --version'
-      }
       stage('Prepare') {
         steps {
           script {
@@ -115,6 +103,27 @@ def call(Map args) {
             mavenCommand = "mvn -B -e"
             eclipseQualifier = sh(returnStdout: true, script: 'date +%Y%m%d%H%M').trim()
             deployCommandSuffix = "-DskipTests -Dmaven.test.skip=true -DforceContextQualifier=$eclipseQualifier${(deployReleaseServerId != null && deployReleaseUrl != null) ? " -DaltReleaseDeploymentRepository='$deployReleaseServerId::default::$deployReleaseUrl'" : ''}${(deploySnapshotServerId != null && deploySnapshotUrl != null) ? " -DaltSnapshotDeploymentRepository='$deploySnapshotServerId::default::$deploySnapshotUrl'" : ''}"
+          }
+        }
+      }
+
+      stage('Print versions') {
+        steps {
+          withMaven(
+            globalMavenSettingsFilePath: mavenGlobalSettingsFilePath,
+            mavenSettingsFilePath: mavenSettingsFilePath,
+            globalMavenSettingsConfig: mavenGlobalSettingsConfig,
+            mavenSettingsConfig: mavenSettingsConfig,
+            mavenOpts: mavenOpts
+          ) {
+            // Print important variables and versions for debugging purposes.
+            echo "Job ${jobName} (base: ${jobBaseName}) on branch ${branchName}"
+            sh 'env'
+            sh 'bash --version'
+            sh 'git --version'
+            sh 'java -version'
+            sh 'javac -version'
+            sh '$mavenCommand --version'
           }
         }
       }
