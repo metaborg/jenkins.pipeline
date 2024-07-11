@@ -116,8 +116,6 @@ def call(Map args) {
             mavenSettingsConfig: mavenSettingsConfig,
             mavenOpts: mavenOpts
           ) {
-            // Print important variables and versions for debugging purposes.
-            echo "Job ${jobName} (base: ${jobBaseName}) on branch ${branchName}"
             sh 'env'
             sh 'bash --version'
             sh 'git --version'
