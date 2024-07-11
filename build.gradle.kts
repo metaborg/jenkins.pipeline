@@ -23,5 +23,5 @@ sourceSets {
 }
 
 dependencies {
-  implementation("org.codehaus.groovy:groovy-all:3.0.4")
+  implementation("org.codehaus.groovy:groovy-all:3.0.22")
 }
