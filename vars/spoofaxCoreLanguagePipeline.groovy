@@ -48,6 +48,14 @@ def call(Map args) {
 
   pipeline {
     agent any
+    // In Jenkins, under Tools, add a JDK Installation with:
+    // - Name: JDK 11
+    // - JAVA_HOME: /usr/lib/jvm/java-11-openjdk-amd64
+    // - Install automatically: false
+    // Ensure the JDK 11 is available in the Spoofax Docker image at the specified path.
+    tools {
+      jdk 'JDK 11'
+    }
     environment {
       LC_ALL = 'C' // Fix assertion in locale stuff (https://stackoverflow.com/a/49796618/499240).
     }
@@ -60,6 +68,18 @@ def call(Map args) {
     }
 
     stages {
+      stage('Echo') {
+        // Print important variables and versions for debugging purposes.
+        echo "Job ${jobName} (base: ${jobBaseName}) on branch ${branchName}"
+        sh 'env'
+        sh 'bash --version'
+        sh 'git --version'
+        sh 'python3 --version'
+        sh 'pip3 --version'
+        sh '$JAVA_HOME/bin/java -version'
+        sh '$JAVA_HOME/bin/javac -version'
+        sh 'mvn --version'
+      }
       stage('Prepare') {
         steps {
           script {
