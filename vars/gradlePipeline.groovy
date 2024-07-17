@@ -183,8 +183,8 @@ def call(Map args) {
           sh 'env'
           sh 'bash --version'
           sh 'git --version'
-          sh 'java -version'
-          sh 'javac -version'
+          sh "$JAVA_HOME/bin/java -version"
+          sh "$JAVA_HOME/bin/javac -version"
           sh "${gradleWrapper ? './gradlew' : 'gradle'} --version"
         }
       }
